@@ -1,0 +1,43 @@
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+IndentCaseLabels: false
+
+# Access modifier
+AccessModifierOffset: -4
+EmptyLineBeforeAccessModifier: LogicalBlock
+
+# Brace wrapping
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterStruct: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterControlStatement: false
+  BeforeCatch: false
+  BeforeElse: false
+
+# Alignment
+AlignAfterOpenBracket: Align
+DerivePointerAlignment: false
+PointerAlignment: Left
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+AlignEscapedNewlinesLeft: true
+AlignConsecutiveMacros: true
+AlignTrailingComments: true
+
+# Place every argument/parameter on new line
+BinPackArguments: false
+BinPackParameters: false
+
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+
+# Wrap after 100 characters
+ColumnLimit: 100
+
+SpaceBeforeParens: ControlStatements
