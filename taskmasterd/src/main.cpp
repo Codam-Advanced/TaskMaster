@@ -1,5 +1,15 @@
-int main() {
-  int i = 0    ;
-       return 0;
+#include <iostream>
+#include <yaml-cpp/yaml.h>
+#include "job.hpp"
 
-    i++;   
+int main() {
+  Job job("Example Job");
+  std::cout << "Hello, Taskmaster!" << std::endl;
+
+  // Load configuration from YAML file
+  YAML::Node config = YAML::LoadFile("../config.yaml");
+
+  job.execute();
+  return 0;
+
+}
