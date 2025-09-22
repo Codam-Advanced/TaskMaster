@@ -1,5 +1,15 @@
-int main() {
-  int i = 0    ;
-       return 0;
+#include <logger/include/Logger.hpp>
+#include <taskmasterd/include/example.hpp>
 
-    i++;   
+int main(int argc, char** argv)
+{
+    testFunc();
+
+    if (argc > 2) {
+        LOG_DEBUG("argc > 2")
+        return 1;
+    }
+
+    LOG_DEBUG("argc <= 2")
+    return 0;
+}
