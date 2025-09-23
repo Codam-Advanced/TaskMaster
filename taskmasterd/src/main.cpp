@@ -3,6 +3,8 @@
 
 int main(int argc, char** argv)
 {
+    Logger::LogInterface::Initialize(argv[0], Logger::LogLevel::Debug, true);
+
     testFunc();
 
     if (argc > 2) {
