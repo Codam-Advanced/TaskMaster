@@ -4,8 +4,11 @@ cmake_minimum_required(VERSION 3.22)
 # Project name
 project(taskmaster)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # include all libs
 add_subdirectory(libs/logger)
+add_subdirectory(libs/utils)
 
 # To add new lib: 
 # add_subdirectory(libs/dir_name)

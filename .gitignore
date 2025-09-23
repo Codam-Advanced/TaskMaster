@@ -44,3 +44,5 @@ CMakeCache.txt
 
 # Misc
 .vscode
+.cache/
+compile_commands.json

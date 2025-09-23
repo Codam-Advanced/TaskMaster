@@ -15,10 +15,10 @@ set(COMPILE_OPTIONS -Wall -Wextra -Werror -pedantic -O3 -march=native)
 add_compile_options(${COMPILE_OPTIONS})
 
 # Link to the needed libs
-target_link_libraries(${EXECUTABLE_NAME} PRIVATE logger)
+target_link_libraries(${EXECUTABLE_NAME} PRIVATE logger utils)
 
 # add executable sources
-target_sources(${EXECUTABLE_NAME} PRIVATE ${SOURCES} main.cpp)
+target_sources(${EXECUTABLE_NAME} PRIVATE ${SOURCES})
 
 # include header directory
 target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
