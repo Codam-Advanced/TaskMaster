@@ -11,14 +11,20 @@ add_executable(${EXECUTABLE_NAME})
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 # Add compile options
-set(COMPILE_OPTIONS -Wall -Wextra -Werror -pedantic -O3 -march=native)
-add_compile_options(${COMPILE_OPTIONS})
+set(COMPILE_OPTIONS -Wall -Wextra -Werror -pedantic -O3 -march=native -g)
+target_compile_options(${EXECUTABLE_NAME} PRIVATE ${COMPILE_OPTIONS})
+
+# Enable fsanitize:
+# target_link_options(${EXECUTABLE_NAME} PRIVATE -fsanitize=address)
+
+message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+
 
 # Link to the needed libs
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE logger)
 
 # add executable sources
-target_sources(${EXECUTABLE_NAME} PRIVATE ${SOURCES} main.cpp)
+target_sources(${EXECUTABLE_NAME} PRIVATE ${SOURCES})
 
 # include header directory
 target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
