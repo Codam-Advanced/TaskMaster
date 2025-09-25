@@ -3,15 +3,14 @@
 
 int main(int argc, char** argv)
 {
+    (void) argc;
     Logger::LogInterface::Initialize(argv[0], Logger::LogLevel::Debug, true);
 
-    testFunc();
+    LOG_DEBUG("Debug log")
+    LOG_ERROR("Error log")
+    LOG_FATAL("Fatal log")
+    LOG_WARNING("Warning log")
+    LOG_INFO("Info log")
 
-    if (argc > 2) {
-        LOG_DEBUG("argc > 2")
-        return 1;
-    }
-
-    LOG_DEBUG("argc <= 2")
     return 0;
 }
