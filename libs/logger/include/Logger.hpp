@@ -8,9 +8,9 @@
 #include <string_view>
 
 #define COLOR_RESET   "\033[0m"
-#define COLOR_FATAL   "\033[38;5;226m"
+#define COLOR_FATAL   "\033[38;5;208m"
 #define COLOR_ERROR   "\033[38;5;160m"
-#define COLOR_WARNING "\033[38;5;208m"
+#define COLOR_WARNING "\033[38;5;226m"
 #define COLOR_INFO    "\033[38;5;13m"
 #define COLOR_DEBUG   "\033[38;5;21m"
 #define COLOR_GRAY    "\033[38;5;232m"
