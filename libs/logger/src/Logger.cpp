@@ -81,31 +81,29 @@ void LogInterface::Log(const char* logMessage, const LogType logType)
         std::cout << GetLogColor(logType) << logMessage << COLOR_RESET << "\n";
     }
 
-    if (logType != LogType::Debug) {
-        try {
-            switch (logType) {
-            case LogType::Fatal:
-                syslog(LOG_DAEMON | LOG_ERR, "%s", logMessage);
-                break;
-            case LogType::Error:
-                syslog(LOG_DAEMON | LOG_ERR, "%s", logMessage);
-                break;
-            case LogType::Warning:
-                syslog(LOG_DAEMON | LOG_WARNING, "%s", logMessage);
-                break;
-            case LogType::Info:
-                syslog(LOG_DAEMON | LOG_INFO, "%s", logMessage);
-                break;
-            case LogType::Debug:
-                syslog(LOG_DAEMON | LOG_DEBUG, "%s", logMessage);
-                break;
-            default:
-                break;
-            }
-        } catch (const std::exception& e) {
-            std::cerr << GetLogColor(LogType::Fatal) << "Error using syslog: " << e.what()
-                      << COLOR_RESET "\n";
+    try {
+        switch (logType) {
+        case LogType::Fatal:
+            syslog(LOG_DAEMON | LOG_ERR, "%s", logMessage);
+            break;
+        case LogType::Error:
+            syslog(LOG_DAEMON | LOG_ERR, "%s", logMessage);
+            break;
+        case LogType::Warning:
+            syslog(LOG_DAEMON | LOG_WARNING, "%s", logMessage);
+            break;
+        case LogType::Info:
+            syslog(LOG_DAEMON | LOG_INFO, "%s", logMessage);
+            break;
+        case LogType::Debug:
+            syslog(LOG_DAEMON | LOG_DEBUG, "%s", logMessage);
+            break;
+        default:
+            break;
         }
+    } catch (const std::exception& e) {
+        std::cerr << GetLogColor(LogType::Error) << "Error using syslog: " << e.what()
+                  << COLOR_RESET "\n";
     }
 }
 
