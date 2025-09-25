@@ -25,16 +25,16 @@ struct JobConfig
     std::string name;
     std::string cmd;
     std::string working_dir;
-    int         numprocs;
+    i32         numprocs;
     mode_t      umask;
 
     bool             autostart;
     RestartPolicy    restart_policy;
-    std::vector<int> exit_codes;
+    std::vector<i32> exit_codes;
 
-    int start_retries;
-    int start_time;
-    int stop_time;
+    i32 start_retries;
+    i32 start_time;
+    i32 stop_time;
 
     Signal stop_signal;
 
