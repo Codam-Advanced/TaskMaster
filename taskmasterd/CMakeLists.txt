@@ -17,9 +17,6 @@ target_compile_options(${EXECUTABLE_NAME} PRIVATE ${COMPILE_OPTIONS})
 # Enable fsanitize:
 # target_link_options(${EXECUTABLE_NAME} PRIVATE -fsanitize=address)
 
-message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
-
-
 # Link to the needed libs
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE logger)
 
