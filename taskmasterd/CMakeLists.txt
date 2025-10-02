@@ -1,30 +1,44 @@
-# cmake_minimum_required
-cmake_minimum_required(VERSION 3.22)
-
+# set the executable name
 set(EXECUTABLE_NAME taskmasterd)
+
 
 # define the executable
 add_executable(${EXECUTABLE_NAME})
+
+#include FetchContent module
+include(FetchContent)
+
+# Fetch yaml-cpp library
+FetchContent_Declare(
+    yaml-cpp
+    GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+    GIT_TAG        0.8.0
+)
+FetchContent_MakeAvailable(yaml-cpp)
+
+# link yaml-cpp library
+target_link_libraries(taskmasterd PUBLIC yaml-cpp)
+
+set(COMPILE_OPTIONS -Werror -Wextra -pedantic -O3 -fsanitize=address -march=native)
 
 # gather all cpp files in src
 # GLOB_RECURSE will search recursively in all subdirectories
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 # Add compile options
-set(COMPILE_OPTIONS -Wall -Wextra -Werror -pedantic -O3 -march=native)
 add_compile_options(${COMPILE_OPTIONS})
 
 # Link to the needed libs
-target_link_libraries(${EXECUTABLE_NAME} PRIVATE logger)
+target_link_libraries(${EXECUTABLE_NAME} PRIVATE utils)
 
 # add executable sources
-target_sources(${EXECUTABLE_NAME} PRIVATE ${SOURCES} main.cpp)
+target_sources(${EXECUTABLE_NAME} PRIVATE ${SOURCES})
 
 # include header directory
-target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# Set C++ standard to C++23
-set(CMAKE_CXX_STANDARD 23)
+
+
 
 # the PRIVATE keyword means that the target source and include directories will
 # only be used for this target and not for any targets that link to it.
