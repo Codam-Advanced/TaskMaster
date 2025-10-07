@@ -11,7 +11,7 @@ add_executable(${EXECUTABLE_NAME})
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 # Add compile options
-set(COMPILE_OPTIONS -Wall -Wextra -Werror -pedantic -O3 -march=native -g)
+set(COMPILE_OPTIONS -Wall -Wextra -Werror -pedantic -O3 -march=native -g -DPROGRAM_NAME="${EXECUTABLE_NAME}")
 target_compile_options(${EXECUTABLE_NAME} PRIVATE ${COMPILE_OPTIONS})
 
 # Enable fsanitize:

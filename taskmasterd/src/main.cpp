@@ -1,10 +1,16 @@
 #include <logger/include/Logger.hpp>
 #include <taskmasterd/include/example.hpp>
+#include <iostream>
+
+#ifndef PROGRAM_NAME
+#define PROGRAM_NAME "taskmasterd"
+#endif
 
 int main(int argc, char** argv)
 {
     (void) argc;
-    Logger::LogInterface::Initialize(argv[0], Logger::LogLevel::Debug, true);
+    (void) argv;
+    Logger::LogInterface::Initialize(PROGRAM_NAME, Logger::LogLevel::Debug, true);
 
     LOG_DEBUG("Debug log")
     LOG_ERROR("Error log")
