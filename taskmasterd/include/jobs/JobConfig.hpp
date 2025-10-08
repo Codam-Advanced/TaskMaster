@@ -22,6 +22,8 @@ struct JobConfig
         ON_FAILURE
     };
 
+    JobConfig(const std::string& name, const std::string& cmd);
+
     std::string name;
     std::string cmd;
     std::string working_dir;

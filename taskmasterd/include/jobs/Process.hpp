@@ -25,13 +25,39 @@ public:
         UNKNOWN   // The process state is unknown. (programming error)
     };
 
+    /**
+     * @brief Construct a new Process object.
+     *
+     * @param name The name of the process.
+     * @param pgid The process group ID. If 0, the child's PID will be used as PGID.
+     */
     Process(const std::string& name, pid_t pgid);
+    Process(Process&&) noexcept;
     virtual ~Process() = default;
 
-    void start(const std::string& cmd, char* const* argv, char* const* env);
-    void stop();
+    /**
+     * @brief Start the process by forking and executing the specified command.
+     *
+     * @param path The path to the executable.
+     * @param argv The argument list for the executable.
+     * @param env The environment variables for the executable.
+     */
+    void start(const std::string& path, char* const* argv, char* const* env);
+
+    /**
+     * @brief Gracefully stop the process using SIGTERM.
+     *
+     * @param timeout The time in seconds to wait for the process to terminate gracefully
+     *                before forcefully killing it. Default is 5 seconds.
+     */
+    void stop(i32 timeout = 5);
+
+    /**
+     * @brief Forcefully kill the process using SIGKILL.
+     *
+     * This method sends a SIGKILL signal to the process to terminate it immediately.
+     */
     void kill();
-    void restart();
 
     void handleRead() override;
 

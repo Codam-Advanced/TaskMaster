@@ -10,7 +10,7 @@
 namespace taskmasterd
 {
 Timer::Timer(i32 interval, std::function<void()> callback)
-    : EventHandler(-1), _interval(interval), _callback(callback)
+    : EventHandler(-1), _interval(interval), _state(State::STOPPED), _callback(callback)
 {
     _fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
     if (_fd == -1) {
@@ -20,6 +20,10 @@ Timer::Timer(i32 interval, std::function<void()> callback)
 
 Timer::~Timer()
 {
+    if (_state == State::RUNNING) {
+        EventManager::getInstance()->unregisterEvent(this);
+    }
+
     if (_fd != -1) {
         close(_fd);
     }
@@ -38,10 +42,14 @@ void Timer::start()
     }
 
     EventManager::getInstance()->registerEvent(this, EventType::READ);
+
+    _state = State::RUNNING;
 }
 
 void Timer::handleRead()
 {
+    _state = State::STOPPED;
+
     u64     expirations;
     ssize_t s = read(_fd, &expirations, sizeof(expirations));
     if (s != sizeof(expirations)) {

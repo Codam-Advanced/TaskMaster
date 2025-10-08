@@ -13,12 +13,35 @@ enum class EventType : u32
 class EventHandler
 {
 public:
+    /**
+     * @brief Construct a new EventHandler object.
+     *
+     * @param fd The file descriptor to be monitored for events.
+     */
     EventHandler(i32 fd) : _fd(fd) {}
     virtual ~EventHandler() = default;
 
-    virtual void handleRead();
-    virtual void handleWrite();
+    /**
+     * @brief Handle read events.
+     *
+     * This method is called when a read event occurs on the associated file descriptor.
+     * Subclasses should override this method to implement custom read handling logic.
+     */
+    virtual void handleRead() {}
 
+    /**
+     * @brief Handle write events.
+     *
+     * This method is called when a write event occurs on the associated file descriptor.
+     * Subclasses should override this method to implement custom write handling logic.
+     */
+    virtual void handleWrite() {}
+
+    /**
+     * @brief Get the file descriptor associated with this event handler.
+     *
+     * @return i32 The file descriptor.
+     */
     i32 getFd() const { return _fd; }
 
 protected:

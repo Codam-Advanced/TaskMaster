@@ -1,11 +1,13 @@
 #pragma once
 
+#include <signal.h>
+
 namespace taskmasterd
 {
 enum class Signal
 {
-    SIGINT,
-    SIGTERM,
-    SIGKILL,
+    INTERRUPT = SIGINT,
+    TERMINATE = SIGTERM,
+    KILL      = SIGKILL,
 };
 } // namespace taskmasterd

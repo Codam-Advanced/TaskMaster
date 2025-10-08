@@ -11,11 +11,12 @@ add_executable(${EXECUTABLE_NAME})
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 # Add compile options
-set(COMPILE_OPTIONS -Wall -Wextra -Werror -pedantic -O3 -march=native)
-add_compile_options(${COMPILE_OPTIONS})
+set(COMPILE_OPTIONS -Wall -Werror -Wextra -pedantic -O3 -march=native -g -fsanitize=address)
+target_compile_options(${EXECUTABLE_NAME} PRIVATE ${COMPILE_OPTIONS})
 
 # Link to the needed libs
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE logger utils)
+target_link_options(${EXECUTABLE_NAME} PRIVATE -fsanitize=address)
 
 # add executable sources
 target_sources(${EXECUTABLE_NAME} PRIVATE ${SOURCES})

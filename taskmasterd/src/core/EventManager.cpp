@@ -1,13 +1,17 @@
 #include <taskmasterd/include/core/EventManager.hpp>
 
+#include <iostream>
 #include <stdexcept>
 #include <sys/epoll.h>
 #include <unistd.h>
+
+#include <logger/include/Logger.hpp>
 
 namespace taskmasterd
 {
 EventManager::EventManager() : _epoll_fd(epoll_create1(0))
 {
+    std::cout << "EventManager created with epoll fd: " << _epoll_fd << std::endl;
     if (_epoll_fd == -1) {
         throw std::runtime_error("Failed to create epoll file descriptor");
     }
@@ -23,11 +27,31 @@ EventManager::~EventManager()
 void EventManager::registerEvent(EventHandler* handler, EventType type)
 {
     struct epoll_event event;
-    event.events   = static_cast<u32>(type);
+    event.events   = static_cast<u32>(type) | EPOLLET;
     event.data.ptr = handler;
+
+    LOG_DEBUG("Registering event for fd " + std::to_string(handler->getFd()));
 
     if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, handler->getFd(), &event) == -1) {
         throw std::runtime_error("Failed to add file descriptor to epoll");
+    }
+}
+
+void EventManager::updateEvent(EventHandler* handler, EventType type)
+{
+    struct epoll_event event;
+    event.events   = static_cast<u32>(type) | EPOLLET;
+    event.data.ptr = handler;
+
+    if (epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, handler->getFd(), &event) == -1) {
+        throw std::runtime_error("Failed to modify file descriptor in epoll");
+    }
+}
+
+void EventManager::unregisterEvent(EventHandler* handler)
+{
+    if (epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, handler->getFd(), nullptr) == -1) {
+        throw std::runtime_error("Failed to remove file descriptor from epoll");
     }
 }
 
@@ -49,6 +73,16 @@ void EventManager::handleEvents()
             handler->handleWrite();
         }
     }
+}
+
+void EventManager::initialize()
+{
+    auto& instance = getInstance();
+    if (instance) {
+        throw std::runtime_error("EventManager is already initialized");
+    }
+
+    instance = std::make_unique<EventManager>();
 }
 
 std::unique_ptr<EventManager>& EventManager::getInstance()
