@@ -11,7 +11,6 @@ namespace taskmasterd
 {
 EventManager::EventManager() : _epoll_fd(epoll_create1(0))
 {
-    std::cout << "EventManager created with epoll fd: " << _epoll_fd << std::endl;
     if (_epoll_fd == -1) {
         throw std::runtime_error("Failed to create epoll file descriptor");
     }

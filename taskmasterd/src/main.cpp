@@ -3,6 +3,10 @@
 #include <taskmasterd/include/core/EventManager.hpp>
 #include <taskmasterd/include/jobs/Job.hpp>
 
+#ifndef PROGRAM_NAME
+#define PROGRAM_NAME "taskmasterd"
+#endif
+
 using namespace taskmasterd;
 
 int main(int argc, char** argv)
@@ -10,7 +14,8 @@ int main(int argc, char** argv)
     (void)argc;
     (void)argv;
 
-    LOG_DEBUG("Starting taskmasterd...");
+    Logger::LogInterface::Initialize(PROGRAM_NAME, Logger::LogLevel::Debug, true);
+    LOG_INFO("Starting " PROGRAM_NAME);
 
     try {
         EventManager::initialize();
@@ -31,7 +36,9 @@ int main(int argc, char** argv)
             EventManager::getInstance()->handleEvents();
         }
     } catch (const std::exception& e) {
-        LOG_DEBUG(std::string("Error: ") + e.what());
+        LOG_ERROR("Exception: " + std::string(e.what()));
         return EXIT_FAILURE;
     }
+
+    return EXIT_SUCCESS;
 }
