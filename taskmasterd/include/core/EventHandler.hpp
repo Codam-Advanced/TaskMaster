@@ -19,7 +19,8 @@ public:
      * @param fd The file descriptor to be monitored for events.
      */
     EventHandler(i32 fd) : _fd(fd) {}
-    virtual ~EventHandler() = default;
+    EventHandler(EventHandler&&) noexcept;
+    virtual ~EventHandler();
 
     /**
      * @brief Handle read events.

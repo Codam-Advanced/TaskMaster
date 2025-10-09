@@ -18,8 +18,8 @@ Process::Process(const std::string& name, pid_t pgid)
 }
 
 Process::Process(Process&& other) noexcept
-    : EventHandler(other._fd), _name(std::move(other._name)), _pid(other._pid), _pgid(other._pgid),
-      _state(other._state), _killTimer(std::move(other._killTimer))
+    : EventHandler(std::move(other)), _name(std::move(other._name)), _pid(other._pid),
+      _pgid(other._pgid), _state(other._state), _killTimer(std::move(other._killTimer))
 {
     EventManager::getInstance()->updateEvent(this, EventType::READ);
 }
@@ -60,6 +60,7 @@ void Process::stop(i32 timeout)
 
     _state = State::STOPPING;
 
+    // Set up a timer to send SIGKILL if the process does not stop in time
     _killTimer.reset(new Timer(timeout, [this]() {
         if (_state == State::STOPPING) {
             LOG_DEBUG("Process " + _name + " did not stop in time, sending SIGKILL");

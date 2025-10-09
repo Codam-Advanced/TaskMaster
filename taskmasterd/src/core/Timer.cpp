@@ -23,10 +23,6 @@ Timer::~Timer()
     if (_state == State::RUNNING) {
         EventManager::getInstance()->unregisterEvent(this);
     }
-
-    if (_fd != -1) {
-        close(_fd);
-    }
 }
 
 void Timer::start()

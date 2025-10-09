@@ -10,6 +10,12 @@ namespace taskmasterd
 class EventManager
 {
 public:
+    /**
+     * @brief Construct a new EventManager object.
+     *
+     * Initializes the epoll instance for event monitoring.
+     *
+     */
     EventManager();
     virtual ~EventManager();
 

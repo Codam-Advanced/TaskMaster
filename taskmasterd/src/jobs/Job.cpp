@@ -8,6 +8,7 @@ namespace taskmasterd
 {
 Job::Job(const JobConfig& config) : _config(config), _pgid(0)
 {
+    // Prepare argv and env for execve
     _args = split_shell(_config.cmd);
     _argv.reserve(_args.size() + 1);
     for (auto& arg : _args) {
@@ -30,6 +31,7 @@ void Job::start()
         Process&    proc      = _processes.emplace_back(proc_name, _pgid);
 
         proc.start(_argv[0], _argv.data(), _env.data());
+        // Set the job's pgid to the first process's pid
         if (_pgid == 0) {
             _pgid = proc.getPid();
         }
