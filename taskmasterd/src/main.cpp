@@ -1,15 +1,22 @@
 #include <logger/include/Logger.hpp>
 #include <taskmasterd/include/example.hpp>
+#include <iostream>
+
+#ifndef PROGRAM_NAME
+#define PROGRAM_NAME "taskmasterd"
+#endif
 
 int main(int argc, char** argv)
 {
-    testFunc();
+    (void) argc;
+    (void) argv;
+    Logger::LogInterface::Initialize(PROGRAM_NAME, Logger::LogLevel::Debug, true);
 
-    if (argc > 2) {
-        LOG_DEBUG("argc > 2")
-        return 1;
-    }
+    LOG_DEBUG("Debug log")
+    LOG_ERROR("Error log")
+    LOG_FATAL("Fatal log")
+    LOG_WARNING("Warning log")
+    LOG_INFO("Info log")
 
-    LOG_DEBUG("argc <= 2")
     return 0;
 }
