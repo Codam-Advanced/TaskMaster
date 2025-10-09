@@ -40,5 +40,24 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    return EXIT_SUCCESS;
+    try 
+    {
+        taskmasterd::JobConfig job("nginx", YAML::LoadFile("../tastconfig.yaml")["jobs"]);
+
+        LOG_DEBUG(("Job name: " + job.name).c_str());
+        LOG_DEBUG(("Job cmd: " + job.cmd).c_str());
+        LOG_DEBUG(("Job working dir: " + job.working_dir).c_str());
+        LOG_DEBUG(("Job numprocs: " + std::to_string(job.numprocs)).c_str());
+        LOG_DEBUG(("Job umask: " + std::to_string(job.umask)).c_str());
+        LOG_DEBUG(("Job autostart: " + std::to_string(job.autostart)).c_str());
+        LOG_DEBUG(("Job exit codes: " + std::to_string(job.exit_codes[0])).c_str());
+        LOG_DEBUG(("job env: " + job._env["STARTED_BY"]).c_str());
+
+    }
+    catch (const std::exception& e)
+    {
+        LOG_FATAL(e.what());
+    }
+
+    return 0;
 }

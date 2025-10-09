@@ -4,12 +4,12 @@
 #include <string>
 #include <sys/stat.h>
 #include <unordered_map>
+#include <signal.h>
 #include <vector>
 
 #include "utils.hpp"
 #include "Logger.hpp"
 #include "yaml-cpp/yaml.h"
-
 
 namespace taskmasterd
 {
@@ -25,6 +25,16 @@ struct JobConfig
         ALWAYS,
         ON_FAILURE
     };
+    enum class Signals : int
+    {
+        INT = SIGINT,
+        TERM = SIGTERM,
+        HUP = SIGHUP,
+        QUIT = SIGQUIT,
+        KILL = SIGKILL,
+        USR1 = SIGUSR1,
+        USR2 = SIGUSR2
+    };
 
     std::string name;
     std::string cmd;
@@ -39,12 +49,11 @@ struct JobConfig
     i32 start_retries;
     i32 start_time;
     i32 stop_time;
-
-    // Implement signal handling
+    Signals signal;
 
     std::optional<std::string> out;
     std::optional<std::string> err;
 
     EnvMap _env;
 };
-} // namespace taskmasterd
+}
