@@ -2,6 +2,8 @@
 
 #include <taskmasterd/include/core/EventManager.hpp>
 #include <taskmasterd/include/jobs/Job.hpp>
+#include <jobs/jobConfig.hpp>
+#include <iostream>
 
 #ifndef PROGRAM_NAME
 #define PROGRAM_NAME "taskmasterd"
@@ -42,16 +44,22 @@ int main(int argc, char** argv)
 
     try 
     {
-        taskmasterd::JobConfig job("nginx", YAML::LoadFile("../tastconfig.yaml")["jobs"]);
 
-        LOG_DEBUG(("Job name: " + job.name).c_str());
-        LOG_DEBUG(("Job cmd: " + job.cmd).c_str());
-        LOG_DEBUG(("Job working dir: " + job.working_dir).c_str());
-        LOG_DEBUG(("Job numprocs: " + std::to_string(job.numprocs)).c_str());
-        LOG_DEBUG(("Job umask: " + std::to_string(job.umask)).c_str());
-        LOG_DEBUG(("Job autostart: " + std::to_string(job.autostart)).c_str());
-        LOG_DEBUG(("Job exit codes: " + std::to_string(job.exit_codes[0])).c_str());
-        LOG_DEBUG(("job env: " + job._env["STARTED_BY"]).c_str());
+        std::unordered_map<std::string, JobConfig> nodes = JobConfig::getJobConfigs("../tastconfig.yaml");
+
+        for (const auto& [name, job] : nodes)
+        {
+            // print some debug info
+            LOG_DEBUG(("Loaded job config:" + name).c_str());
+            LOG_DEBUG(("Job name: " + job.name).c_str());
+            LOG_DEBUG(("Job cmd: " + job.cmd).c_str());
+            LOG_DEBUG(("Job working dir: " + job.working_dir).c_str());
+            LOG_DEBUG(("Job numprocs: " + std::to_string(job.numprocs)).c_str());
+            LOG_DEBUG(("Job umask: " + std::to_string(job.umask)).c_str());
+            LOG_DEBUG(("Job autostart: " + std::to_string(job.autostart)).c_str());
+            LOG_DEBUG(("Job exit codes: " + std::to_string(job.exit_codes[0])).c_str());
+            LOG_DEBUG(("job env: " + (job.env.find("STARTED_BY") != job.env.end() ? job.env.at("STARTED_BY") : "Empty")).c_str());
+        }
 
     }
     catch (const std::exception& e)

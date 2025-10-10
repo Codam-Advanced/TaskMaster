@@ -1,4 +1,4 @@
-#include "jobs/jobConfig.hpp"
+#include <jobs/jobConfig.hpp>
 #include <iostream>
 #include <functional>
 
@@ -100,8 +100,16 @@ void parseExitCodes(JobConfig* object, const YAML::Node& config)
         return;
     }
 
-    //this should work. we convert it straight into a vector<i32>
-    object->exit_codes = config.as<std::vector<i32>>();
+    try
+    {
+        //this should work. we convert it straight into a vector<i32>
+        object->exit_codes = config.as<std::vector<i32>>();
+    }
+    catch (const std::exception& e)
+    {
+        // if it fails we try to convert it into a single i32
+        object->exit_codes.push_back(config.as<i32>());
+    }
 }
 
 void parseStartRetries(JobConfig* object, const YAML::Node& config)
@@ -198,17 +206,17 @@ void parseSTDERR(JobConfig* object, const YAML::Node& config)
 
 void parseENV(JobConfig* object, const YAML::Node& config)
 {
-    if (!config.IsDefined())
+    if (!config.IsDefined()) 
     {
         // If not present default is empty env
-        object->_env = JobConfig::EnvMap();
+        object->env = JobConfig::EnvMap();
         return;
     }
 
     // we expect a map here so we iterate over the map and add it to our env map
     for (auto it = config.begin(); it != config.end(); ++it)
     {
-        object->_env[it->first.as<std::string>()] = it->second.as<std::string>();
+        object->env[it->first.as<std::string>()] = it->second.as<std::string>();
     }
 }
 
@@ -231,30 +239,72 @@ JobConfig::JobConfig(const std::string& name, const YAML::Node& config) : name(n
         {"env", parseENV}
     };
 
-    const YAML::Node job = config[name];
-
-    // check if the job is inside the config file
-    if (!job.IsDefined())
-    {
-        throw std::runtime_error("Couldn't find job in config file");
-    }
-
     // iterate over all the nodes in the job and call the corresponding function
-    for (auto it = job.begin(); it != job.end(); ++it)
+    for (auto it = nodes.begin(); it != nodes.end(); ++it)
     {
-        // get the key as a string
-        std::string key = it->first.as<std::string>();
+        // call the function with the current object and the node
 
-        // check if the key is in the map of supported types
-        if (nodes.find(key) == nodes.end())
+        LOG_DEBUG(("Parsing node: " + it->first).c_str());
+        it->second(this, config[it->first]);
+    }
+}
+
+std::unordered_map<std::string, JobConfig> JobConfig::getJobConfigs(const std::string& filename)
+{
+    std::unordered_map<std::string, JobConfig> jobConfigs;
+
+    try 
+    {
+        // Load the YAML file
+        YAML::Node config = YAML::LoadFile(filename)["jobs"];
+
+        // Check if the "jobs" node exists
+        if (!config.IsDefined())
         {
-            // if the key is not found we skip it.
-            LOG_WARNING(std::string("Warning: Unknown key: " + key + " for job: " + name + " skipping...").c_str());
-            continue;
+            LOG_FATAL("ERROR: No 'jobs' node found in the configuration file.");
+            return jobConfigs;
         }
 
-        // call the function with the current object and the node
-        nodes.at(key)(this, job[key]);
+        // Iterate over each job in the "jobs" node
+        for (auto it = config.begin(); it != config.end(); ++it)
+        {
+            // Get the job name
+            std::string name = it->first.as<std::string>();
+
+            // Check if the job name already exists
+            if (jobConfigs.find(name) != jobConfigs.end())
+            {
+                LOG_WARNING(("ERROR: Duplicate job name found: " + name + "Skipping...").c_str());
+                continue;
+            }
+
+            try 
+            {
+                // Create a JobConfig object and add it to the map
+                jobConfigs.emplace(name, JobConfig(name, config[name]));
+            }
+            catch (const std::exception& e)
+            {
+                LOG_ERROR(("ERROR: Failed to parse job '" + name + "': " + e.what() + " Skipping...").c_str());
+                
+                // Skip this job and continue with the next one
+                continue;
+            }
+        }
     }
+    catch (const std::exception& e)
+    {
+        LOG_ERROR(e.what());
+
+        // clear the map
+        jobConfigs.clear();
+        
+        // Return 
+        return jobConfigs;
+    }
+
+    // Return the map of job configurations
+    // {job name, job config object}
+    return jobConfigs;
 }
 }
