@@ -5,13 +5,12 @@ cmake_minimum_required(VERSION 3.22)
 project(taskmaster)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# Set C++ standard to C++23
+set(CMAKE_CXX_STANDARD 23)
 
 # include all libs
 add_subdirectory(libs/logger)
 add_subdirectory(libs/utils)
-
-# To add new lib: 
-# add_subdirectory(libs/dir_name)
 
 # include cmake module taskmasterd
 add_subdirectory(taskmasterd)
