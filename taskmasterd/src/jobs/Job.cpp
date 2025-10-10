@@ -12,7 +12,7 @@ Job::Job(const JobConfig& config) : _config(config), _pgid(0)
     _args = split_shell(_config.cmd);
     _argv.reserve(_args.size() + 1);
     for (auto& arg : _args) {
-        _argv.push_back(strdup(arg.c_str()));
+        _argv.push_back(arg.c_str());
     }
     _argv.push_back(nullptr);
 
