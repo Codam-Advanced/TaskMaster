@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.22)
 
 set(EXECUTABLE_NAME taskmasterd)
 
+# Set C++ standard to C++23
+set(CMAKE_CXX_STANDARD 23)
+
 # define the executable
 add_executable(${EXECUTABLE_NAME})
 
@@ -18,16 +21,13 @@ target_compile_options(${EXECUTABLE_NAME} PRIVATE ${COMPILE_OPTIONS})
 # target_link_options(${EXECUTABLE_NAME} PRIVATE -fsanitize=address)
 
 # Link to the needed libs
-target_link_libraries(${EXECUTABLE_NAME} PRIVATE logger)
+target_link_libraries(${EXECUTABLE_NAME} PRIVATE logger utils)
 
 # add executable sources
 target_sources(${EXECUTABLE_NAME} PRIVATE ${SOURCES})
 
 # include header directory
 target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
-
-# Set C++ standard to C++23
-set(CMAKE_CXX_STANDARD 23)
 
 # the PRIVATE keyword means that the target source and include directories will
 # only be used for this target and not for any targets that link to it.

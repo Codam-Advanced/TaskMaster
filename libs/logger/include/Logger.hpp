@@ -105,7 +105,7 @@ public:
     /**
      * @brief Function used for logging a message in the format for the LogType.
      */
-    void Log(const char* logMessage, const LogType logType);
+    void Log(const std::string& msg, const LogType logType);
 };
 
 } /* namespace Logger */

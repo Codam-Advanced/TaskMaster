@@ -71,7 +71,7 @@ constexpr const char* LogInterface::GetLogColor(LogType LogType)
     }
 }
 
-void LogInterface::Log(const char* logMessage, const LogType logType)
+void LogInterface::Log(const std::string& logMessage, const LogType logType)
 {
     if (!CanLogLogWithSetLogLevel(logType)) {
         return;
@@ -84,19 +84,19 @@ void LogInterface::Log(const char* logMessage, const LogType logType)
     try {
         switch (logType) {
         case LogType::Fatal:
-            syslog(LOG_DAEMON | LOG_ERR, "%s", logMessage);
+            syslog(LOG_DAEMON | LOG_ERR, "%s", logMessage.c_str());
             break;
         case LogType::Error:
-            syslog(LOG_DAEMON | LOG_ERR, "%s", logMessage);
+            syslog(LOG_DAEMON | LOG_ERR, "%s", logMessage.c_str());
             break;
         case LogType::Warning:
-            syslog(LOG_DAEMON | LOG_WARNING, "%s", logMessage);
+            syslog(LOG_DAEMON | LOG_WARNING, "%s", logMessage.c_str());
             break;
         case LogType::Info:
-            syslog(LOG_DAEMON | LOG_INFO, "%s", logMessage);
+            syslog(LOG_DAEMON | LOG_INFO, "%s", logMessage.c_str());
             break;
         case LogType::Debug:
-            syslog(LOG_DAEMON | LOG_DEBUG, "%s", logMessage);
+            syslog(LOG_DAEMON | LOG_DEBUG, "%s", logMessage.c_str());
             break;
         default:
             break;

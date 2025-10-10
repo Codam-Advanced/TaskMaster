@@ -1,22 +1,44 @@
 #include <logger/include/Logger.hpp>
-#include <taskmasterd/include/example.hpp>
-#include <iostream>
+
+#include <taskmasterd/include/core/EventManager.hpp>
+#include <taskmasterd/include/jobs/Job.hpp>
 
 #ifndef PROGRAM_NAME
 #define PROGRAM_NAME "taskmasterd"
 #endif
 
+using namespace taskmasterd;
+
 int main(int argc, char** argv)
 {
-    (void) argc;
-    (void) argv;
+    (void)argc;
+    (void)argv;
+
     Logger::LogInterface::Initialize(PROGRAM_NAME, Logger::LogLevel::Debug, true);
+    LOG_INFO("Starting " PROGRAM_NAME);
 
-    LOG_DEBUG("Debug log")
-    LOG_ERROR("Error log")
-    LOG_FATAL("Fatal log")
-    LOG_WARNING("Warning log")
-    LOG_INFO("Info log")
+    try {
+        EventManager::initialize();
 
-    return 0;
+        JobConfig config("myls", "/bin/ls ..");
+        config.numprocs = 3;
+        JobConfig config2("mysleep", "/bin/sleep 8");
+        config2.numprocs = 2;
+
+        Job job(config);
+        Job job2(config2);
+
+        job.start();
+        job2.start();
+        job2.stop();
+
+        while (true) {
+            EventManager::getInstance()->handleEvents();
+        }
+    } catch (const std::exception& e) {
+        LOG_ERROR("Exception: " + std::string(e.what()));
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }
