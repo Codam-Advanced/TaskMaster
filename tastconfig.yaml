@@ -18,9 +18,9 @@ jobs:
     env:
       STARTED_BY: taskmaster
       ANSWER: 42
-  vogsphere:
-    cmd: "/usr/local/bin/vogsphere-worker --no-prefork"
-    numprocs: 8
+  sleepy:
+    cmd: "/usr/bin/sleep 10"
+    numprocs: 1
     umask: 077
     workingdir: /tmp
     autostart: true

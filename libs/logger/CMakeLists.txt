@@ -1,5 +1,5 @@
 # Define the library name
-set(LIBRARY_NAME utils)
+set(LIBRARY_NAME logger)
 
 # Set project info
 project(${LIBRARY_NAME} VERSION 1.0.0 DESCRIPTION "Utility lib for TaskMaster")

@@ -2,7 +2,7 @@
 
 #include <taskmasterd/include/core/EventManager.hpp>
 #include <taskmasterd/include/jobs/Job.hpp>
-#include <jobs/jobConfig.hpp>
+#include <taskmasterd/include/jobs/JobConfig.hpp>
 #include <iostream>
 
 #ifndef PROGRAM_NAME
@@ -19,33 +19,13 @@ int main(int argc, char** argv)
     Logger::LogInterface::Initialize(PROGRAM_NAME, Logger::LogLevel::Debug, true);
     LOG_INFO("Starting " PROGRAM_NAME);
 
-    try {
-        EventManager::initialize();
-
-        JobConfig config("myls", "/bin/ls ..");
-        config.numprocs = 3;
-        JobConfig config2("mysleep", "/bin/sleep 8");
-        config2.numprocs = 2;
-
-        Job job(config);
-        Job job2(config2);
-
-        job.start();
-        job2.start();
-        job2.stop();
-
-        while (true) {
-            EventManager::getInstance()->handleEvents();
-        }
-    } catch (const std::exception& e) {
-        LOG_ERROR("Exception: " + std::string(e.what()));
-        return EXIT_FAILURE;
-    }
+   
 
     try 
     {
 
         std::unordered_map<std::string, JobConfig> nodes = JobConfig::getJobConfigs("../tastconfig.yaml");
+        EventManager::initialize();
 
         for (const auto& [name, job] : nodes)
         {
@@ -61,10 +41,25 @@ int main(int argc, char** argv)
             LOG_DEBUG(("job env: " + (job.env.find("STARTED_BY") != job.env.end() ? job.env.at("STARTED_BY") : "Empty")).c_str());
         }
 
+        
+
+        Job job(nodes.begin()->second);
+        Job job2((++nodes.begin())->second);
+
+        job.start();
+        job2.start();
+        job2.stop();
+
+        while (true) 
+        {
+            EventManager::getInstance()->handleEvents();
+        }
+
     }
-    catch (const std::exception& e)
+    catch (const std::exception& e) 
     {
-        LOG_FATAL(e.what());
+        LOG_ERROR("Exception: " + std::string(e.what()));
+        return EXIT_FAILURE;
     }
 
     return 0;

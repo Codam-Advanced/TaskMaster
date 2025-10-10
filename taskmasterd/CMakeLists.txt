@@ -33,7 +33,7 @@ target_link_libraries(${EXECUTABLE_NAME} PRIVATE logger utils)
 target_sources(${EXECUTABLE_NAME} PRIVATE ${SOURCES})
 
 # include header directory
-target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 # the PRIVATE keyword means that the target source and include directories will
 # only be used for this target and not for any targets that link to it.
