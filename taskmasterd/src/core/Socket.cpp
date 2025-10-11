@@ -5,7 +5,7 @@
 
 namespace taskmasterd
 {
-Socket::Socket(Type type) : EventHandler(-1)
+Socket::Socket(Type type) : EventHandler(-1), _type(type)
 {
     switch (type) {
     case Type::TCP:
@@ -26,6 +26,8 @@ Socket::Socket(Type type) : EventHandler(-1)
     }
 }
 
+Socket::Socket(Type type, i32 fd) : EventHandler(fd), _type(type) {}
+
 void Socket::bind(const Address& address)
 {
     if (::bind(_fd, &address.getSockAddr(), address.getSockAddrLen()) == -1) {
@@ -38,5 +40,18 @@ void Socket::listen(i32 backlog)
     if (::listen(_fd, backlog) == -1) {
         throw std::runtime_error("Failed to listen on socket");
     }
+}
+
+Socket Socket::accept()
+{
+    // TODO: Store client address if needed
+    i32 fd = ::accept(_fd, nullptr, nullptr);
+    if (fd == -1) {
+        throw std::runtime_error("Failed to accept connection");
+    }
+
+    Socket socket(_type, fd);
+
+    return socket;
 }
 } // namespace taskmasterd

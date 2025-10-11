@@ -12,7 +12,15 @@ EventHandler::EventHandler(EventHandler&& other) noexcept : _fd(other._fd)
 EventHandler::~EventHandler()
 {
     if (_fd != -1) {
-        close(_fd);
+        ::close(_fd);
+    }
+}
+
+void EventHandler::close()
+{
+    if (_fd != -1) {
+        ::close(_fd);
+        _fd = -1;
     }
 }
 } // namespace taskmasterd

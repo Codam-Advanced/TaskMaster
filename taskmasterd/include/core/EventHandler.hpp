@@ -45,6 +45,14 @@ public:
      */
     i32 getFd() const { return _fd; }
 
+    /**
+     * @brief Close the file descriptor associated with this event handler.
+     *
+     * This method closes the file descriptor and sets it to -1 to indicate that it is no longer
+     * valid.
+     */
+    void close();
+
 protected:
     i32 _fd;
 };
