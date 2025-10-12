@@ -1,13 +1,12 @@
 #pragma once
 
-#include <vector>
-
 #include <taskmasterd/include/core/Socket.hpp>
+#include <taskmasterd/include/ipc/ProtoReader.hpp>
 #include <utils/include/utils.hpp>
 
 namespace taskmasterd
 {
-class Client : public Socket
+class Client : public ProtoReader<proto::Command>
 {
 public:
     /** Construct a new Client object.
@@ -16,20 +15,17 @@ public:
      */
     Client(Socket&& socket);
 
-    /** Handle read events from the client.
+    /** Handle a complete protobuf Command message.
+     * This method is called when a complete Command message is received from the client.
      *
-     * This method reads data from the client socket and stores it in an internal buffer.
-     * If the client disconnects, it closes the socket.
+     * @param command The complete Command message received.
      */
-    void handleRead() override;
+    void handleMessage(proto::Command command) override;
 
     /** Check if the client is still connected.
      *
      * @return true if the client is connected, false otherwise.
      */
     bool isConnected() const { return _fd != -1; }
-
-private:
-    std::vector<u8> _buffer;
 };
 } // namespace taskmasterd

@@ -21,7 +21,7 @@ target_compile_options(${EXECUTABLE_NAME} PRIVATE ${COMPILE_OPTIONS})
 # target_link_options(${EXECUTABLE_NAME} PRIVATE -fsanitize=address)
 
 # Link to the needed libs
-target_link_libraries(${EXECUTABLE_NAME} PRIVATE logger utils)
+target_link_libraries(${EXECUTABLE_NAME} PRIVATE logger utils proto)
 
 # add executable sources
 target_sources(${EXECUTABLE_NAME} PRIVATE ${SOURCES})

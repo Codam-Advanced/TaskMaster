@@ -1,0 +1,16 @@
+edition = "2023";
+
+package proto;
+
+enum CommandType {
+    START = 0;
+    STOP = 1;
+    RESTART = 2;
+    STATUS = 3;
+    RELOAD = 4;
+}
+
+message Command {
+    CommandType type = 1;
+    repeated string args = 2;
+}
