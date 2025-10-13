@@ -1,11 +1,12 @@
 #pragma once
 
+#include <cstring>
 #include <optional>
 #include <vector>
 
 #include <logger/include/Logger.hpp>
 #include <proto/taskmaster.pb.h>
-#include <taskmasterd/include/core/Socket.hpp>
+#include <taskmasterd/include/core/EventHandler.hpp>
 #include <utils/include/utils.hpp>
 
 namespace taskmasterd
@@ -13,11 +14,6 @@ namespace taskmasterd
 template <typename T> class ProtoReader : public EventHandler
 {
 public:
-    ProtoReader(EventHandler&& handler)
-        : EventHandler(std::move(handler)), _buffer(), _message_size(std::nullopt)
-    {
-    }
-
     /** Handle read events on the fd.
      * This method reads data from the fd, reconstructs protobuf messages,
      * and calls handleMessage for each complete message received.
@@ -33,7 +29,7 @@ public:
             if (!_message_size.has_value() && _buffer.size() >= sizeof(i32)) {
                 // Read the size of the message (first 4 bytes)
                 i32 message_size;
-                memcpy(&message_size, _buffer.data(), sizeof(i32));
+                std::memcpy(&message_size, _buffer.data(), sizeof(i32));
                 _message_size = ntohl(message_size);
             }
 

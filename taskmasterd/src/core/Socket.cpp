@@ -5,7 +5,7 @@
 
 namespace taskmasterd
 {
-Socket::Socket(Type type) : EventHandler(-1), _type(type)
+Socket::Socket(Type type) : FileDescriptor(-1), _type(type)
 {
     switch (type) {
     case Type::TCP:
@@ -26,7 +26,7 @@ Socket::Socket(Type type) : EventHandler(-1), _type(type)
     }
 }
 
-Socket::Socket(Type type, i32 fd) : EventHandler(fd), _type(type) {}
+Socket::Socket(Type type, i32 fd) : FileDescriptor(fd), _type(type) {}
 
 void Socket::bind(const Address& address)
 {

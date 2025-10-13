@@ -1,12 +1,12 @@
 #pragma once
 
 #include <taskmasterd/include/core/Address.hpp>
-#include <taskmasterd/include/core/EventHandler.hpp>
+#include <taskmasterd/include/core/FileDescriptor.hpp>
 #include <utils/include/utils.hpp>
 
 namespace taskmasterd
 {
-class Socket : public EventHandler
+class Socket : public FileDescriptor
 {
 public:
     enum class Type

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <taskmasterd/include/core/FileDescriptor.hpp>
 #include <utils/include/utils.hpp>
 
 namespace taskmasterd
@@ -10,7 +11,7 @@ enum class EventType : u32
     WRITE = 0x04,
 };
 
-class EventHandler
+class EventHandler : public FileDescriptor
 {
 public:
     /**
@@ -18,8 +19,7 @@ public:
      *
      * @param fd The file descriptor to be monitored for events.
      */
-    EventHandler(i32 fd) : _fd(fd) {}
-    EventHandler(EventHandler&&) noexcept;
+    EventHandler(i32 fd) : FileDescriptor(fd) {}
     virtual ~EventHandler();
 
     /**
@@ -37,23 +37,5 @@ public:
      * Subclasses should override this method to implement custom write handling logic.
      */
     virtual void handleWrite() {}
-
-    /**
-     * @brief Get the file descriptor associated with this event handler.
-     *
-     * @return i32 The file descriptor.
-     */
-    i32 getFd() const { return _fd; }
-
-    /**
-     * @brief Close the file descriptor associated with this event handler.
-     *
-     * This method closes the file descriptor and sets it to -1 to indicate that it is no longer
-     * valid.
-     */
-    void close();
-
-protected:
-    i32 _fd;
 };
 } // namespace taskmasterd
