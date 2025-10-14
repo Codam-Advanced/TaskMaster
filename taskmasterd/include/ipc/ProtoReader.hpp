@@ -14,6 +14,8 @@ namespace taskmasterd
 template <typename T> class ProtoReader : public EventHandler
 {
 public:
+    using EventHandler::EventHandler;
+
     /** Handle read events on the fd.
      * This method reads data from the fd, reconstructs protobuf messages,
      * and calls handleMessage for each complete message received.

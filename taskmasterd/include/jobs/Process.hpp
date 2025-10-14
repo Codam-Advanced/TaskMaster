@@ -4,12 +4,12 @@
 #include <string>
 #include <unistd.h>
 
-#include <taskmasterd/include/core/EventHandler.hpp>
+#include <taskmasterd/include/core/FileDescriptor.hpp>
 #include <taskmasterd/include/core/Timer.hpp>
 
 namespace taskmasterd
 {
-class Process : public EventHandler
+class Process : public FileDescriptor
 {
 public:
     enum class State
@@ -59,7 +59,12 @@ public:
      */
     void kill();
 
-    void handleRead() override;
+    /**
+     * @brief Callack for state changes.
+     *
+     * This method is called when the process state changes, such as when it exits.
+     */
+    void onStateChange();
 
     pid_t getPid() const { return _pid; }
 

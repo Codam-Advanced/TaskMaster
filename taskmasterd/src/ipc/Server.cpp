@@ -12,12 +12,17 @@ Server::Server(Socket::Type type, const Address& address, i32 backlog) : Socket(
     this->bind(address);
     this->listen(backlog);
 
-    EventManager::getInstance()->registerEvent(this, EventType::READ);
+    EventManager::getInstance().registerEvent(*this, std::bind(&Server::onAccept, this), nullptr);
 
     LOG_INFO("Server listening on fd: " + std::to_string(_fd));
 }
 
-void Server::handleRead()
+Server::~Server()
+{
+    EventManager::getInstance().unregisterEvent(*this);
+}
+
+void Server::onAccept()
 {
     // Accept a new connection
     Socket client = this->accept();

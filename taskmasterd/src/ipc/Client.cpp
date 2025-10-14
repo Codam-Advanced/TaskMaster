@@ -8,18 +8,20 @@
 
 namespace taskmasterd
 {
-Client::Client(Socket&& socket) : ProtoReader<proto::Command>(std::move(socket))
+Client::Client(Socket&& socket)
+    // : ProtoReader<proto::Command>(std::move(socket))
+    : Socket(std::move(socket))
 {
-    EventManager::getInstance()->registerEvent(this, EventType::READ);
+    // EventManager::getInstance()->registerEvent(this, EventType::READ);
 
     LOG_INFO("New client connected with fd: " + std::to_string(_fd));
 }
 
-void Client::handleMessage(proto::Command command)
-{
-    // Handle the received command
-    LOG_INFO("Received command from client fd " + std::to_string(_fd) + ": " +
-             command.DebugString());
-    // TODO: Process the command as needed
-}
+// void Client::handleMessage(proto::Command command)
+// {
+//     // Handle the received command
+//     LOG_INFO("Received command from client fd " + std::to_string(_fd) + ": " +
+//              command.DebugString());
+//     // TODO: Process the command as needed
+// }
 } // namespace taskmasterd

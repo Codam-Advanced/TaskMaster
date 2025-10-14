@@ -1,12 +1,12 @@
 #pragma once
 
 #include <taskmasterd/include/core/Socket.hpp>
-#include <taskmasterd/include/ipc/ProtoReader.hpp>
+// #include <taskmasterd/include/ipc/ProtoReader.hpp>
 #include <utils/include/utils.hpp>
 
 namespace taskmasterd
 {
-class Client : public ProtoReader<proto::Command>
+class Client : Socket // : public ProtoReader<proto::Command>
 {
 public:
     /** Construct a new Client object.
@@ -20,7 +20,7 @@ public:
      *
      * @param command The complete Command message received.
      */
-    void handleMessage(proto::Command command) override;
+    // void handleMessage(proto::Command command) override;
 
     /** Check if the client is still connected.
      *

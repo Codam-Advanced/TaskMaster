@@ -1,6 +1,5 @@
 #include <taskmasterd/include/core/EventManager.hpp>
 
-#include <iostream>
 #include <stdexcept>
 #include <sys/epoll.h>
 #include <unistd.h>
@@ -9,84 +8,80 @@
 
 namespace taskmasterd
 {
-EventManager::EventManager() : _epoll_fd(epoll_create1(0))
+EventManager::EventManager() : FileDescriptor(epoll_create1(0))
 {
-    if (_epoll_fd == -1) {
+    if (_fd == -1) {
         throw std::runtime_error("Failed to create epoll file descriptor");
     }
 }
 
-EventManager::~EventManager()
+void EventManager::registerEvent(const FileDescriptor& handler,
+                                 EventCallback         read_callback,
+                                 EventCallback         write_callback)
 {
-    if (_epoll_fd != -1) {
-        close(_epoll_fd);
-    }
+    this->updateEventInternal(handler, EPOLL_CTL_ADD, read_callback, write_callback);
 }
 
-void EventManager::registerEvent(EventHandler* handler, EventType type)
+void EventManager::updateEvent(const FileDescriptor& handler,
+                               EventCallback         read_callback,
+                               EventCallback         write_callback)
 {
-    struct epoll_event event;
-    event.events   = static_cast<u32>(type) | EPOLLET;
-    event.data.ptr = handler;
-
-    LOG_DEBUG("Registering event for fd " + std::to_string(handler->getFd()));
-
-    if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, handler->getFd(), &event) == -1) {
-        throw std::runtime_error("Failed to add file descriptor to epoll");
-    }
+    this->updateEventInternal(handler, EPOLL_CTL_MOD, read_callback, write_callback);
 }
 
-void EventManager::updateEvent(EventHandler* handler, EventType type)
+void EventManager::updateEventInternal(const FileDescriptor& handler,
+                                       i32                   operation,
+                                       EventCallback         read_callback,
+                                       EventCallback         write_callback)
 {
-    struct epoll_event event;
-    event.events   = static_cast<u32>(type) | EPOLLET;
-    event.data.ptr = handler;
+    struct epoll_event event{};
+    if (read_callback)
+        event.events = EPOLLIN;
+    if (write_callback)
+        event.events |= EPOLLOUT;
+    event.data.fd = handler.getFd();
 
-    if (epoll_ctl(_epoll_fd, EPOLL_CTL_MOD, handler->getFd(), &event) == -1) {
-        throw std::runtime_error("Failed to modify file descriptor in epoll");
+    if (epoll_ctl(_fd, operation, handler.getFd(), &event) == -1) {
+        throw std::runtime_error("Failed to update file descriptor in epoll");
     }
+
+    _read_callbacks[handler.getFd()]  = read_callback;
+    _write_callbacks[handler.getFd()] = write_callback;
 }
 
-void EventManager::unregisterEvent(EventHandler* handler)
+void EventManager::unregisterEvent(const FileDescriptor& handler)
 {
-    if (epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, handler->getFd(), nullptr) == -1) {
+    if (epoll_ctl(_fd, EPOLL_CTL_DEL, handler.getFd(), nullptr) == -1) {
         throw std::runtime_error("Failed to remove file descriptor from epoll");
     }
+
+    _read_callbacks.erase(handler.getFd());
+    _write_callbacks.erase(handler.getFd());
 }
 
 void EventManager::handleEvents()
 {
     struct epoll_event events[MAX_EVENTS];
 
-    i32 num_events = epoll_wait(_epoll_fd, events, MAX_EVENTS, -1);
+    i32 num_events = epoll_wait(_fd, events, MAX_EVENTS, -1);
     if (num_events == -1) {
         throw std::runtime_error("epoll_wait failed");
     }
 
     for (i32 i = 0; i < num_events; i++) {
-        EventHandler* handler = static_cast<EventHandler*>(events[i].data.ptr);
+        i32 fd = events[i].data.fd;
         if (events[i].events & EPOLLIN) {
-            handler->handleRead();
+            _read_callbacks.at(fd)();
         }
         if (events[i].events & EPOLLOUT) {
-            handler->handleWrite();
+            _write_callbacks.at(fd)();
         }
     }
 }
 
-void EventManager::initialize()
+EventManager& EventManager::getInstance()
 {
-    auto& instance = getInstance();
-    if (instance) {
-        throw std::runtime_error("EventManager is already initialized");
-    }
-
-    instance = std::make_unique<EventManager>();
-}
-
-std::unique_ptr<EventManager>& EventManager::getInstance()
-{
-    static std::unique_ptr<EventManager> instance;
+    static EventManager instance;
 
     return instance;
 }

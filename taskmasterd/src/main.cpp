@@ -18,7 +18,7 @@ int main(int argc, char** argv)
     LOG_INFO("Starting " PROGRAM_NAME);
 
     try {
-        EventManager::initialize();
+        // EventManager::initialize();
 
         JobConfig config("myls", "/bin/ls ..");
         config.numprocs = 3;
@@ -33,10 +33,10 @@ int main(int argc, char** argv)
         job2.stop();
 
         while (true) {
-            EventManager::getInstance()->handleEvents();
+            EventManager::getInstance().handleEvents();
         }
     } catch (const std::exception& e) {
-        LOG_ERROR("Exception: " + std::string(e.what()));
+        LOG_FATAL("Exception: " + std::string(e.what()));
         return EXIT_FAILURE;
     }
 
