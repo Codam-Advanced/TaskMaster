@@ -1,32 +1,41 @@
 #pragma once
 
+#include <arpa/inet.h>
 #include <cstring>
 #include <optional>
+#include <sys/socket.h>
 #include <vector>
 
 #include <logger/include/Logger.hpp>
 #include <proto/taskmaster.pb.h>
-#include <taskmasterd/include/core/EventHandler.hpp>
+#include <taskmasterd/include/core/FileDescriptor.hpp>
 #include <utils/include/utils.hpp>
 
 namespace taskmasterd
 {
-template <typename T> class ProtoReader : public EventHandler
+template <typename T> class ProtoReader
 {
 public:
-    using EventHandler::EventHandler;
-
-    /** Handle read events on the fd.
-     * This method reads data from the fd, reconstructs protobuf messages,
-     * and calls handleMessage for each complete message received.
+    /**
+     * @brief Read and parse a protobuf message from the given file descriptor.
+     *
+     * This method reads data from the file descriptor, accumulates it in an internal buffer,
+     * and attempts to parse a complete protobuf message of type T. It expects the first
+     * 4 bytes of the message to represent the size of the serialized protobuf message in
+     * network byte order (big-endian).
+     *
+     * @param fd The file descriptor to read from.
+     * @return A pair containing the number of bytes read and an optional parsed message or
+     * std::nullopt if a complete message has not yet been received.
      */
-    void handleRead() override
+    std::pair<isize, std::optional<T>> read(const FileDescriptor& fd)
     {
         const usize BUFFER_SIZE = 4096;
 
-        char    buffer[BUFFER_SIZE];
-        ssize_t bytes_read = recv(_fd, buffer, BUFFER_SIZE, 0);
+        char  buffer[BUFFER_SIZE];
+        isize bytes_read = recv(fd.getFd(), buffer, BUFFER_SIZE, 0);
         if (bytes_read > 0) {
+            // Append the newly read data to the internal buffer
             _buffer.insert(_buffer.end(), buffer, buffer + bytes_read);
             if (!_message_size.has_value() && _buffer.size() >= sizeof(i32)) {
                 // Read the size of the message (first 4 bytes)
@@ -38,33 +47,26 @@ public:
             if (_message_size.has_value() &&
                 _buffer.size() >= sizeof(i32) + _message_size.value()) {
                 // We have a complete message
-                T message;
-                if (!message.ParseFromArray(_buffer.data() + sizeof(i32), _message_size.value())) {
-                    LOG_ERROR("Failed to parse message from buffer: " +
-                              message.InitializationErrorString());
-                }
+                T    message;
+                bool success =
+                    message.ParseFromArray(_buffer.data() + sizeof(i32), _message_size.value());
 
                 _buffer.erase(_buffer.begin(),
                               _buffer.begin() + sizeof(i32) + _message_size.value());
                 _message_size.reset();
 
-                if (message.IsInitialized())
-                    this->handleMessage(message);
-            }
-        } else if (bytes_read == 0) {
-            LOG_INFO("Client disconnected with fd: " + std::to_string(_fd));
-            this->close();
-        } else {
-            LOG_ERROR("Error reading from client");
-        }
-    }
+                if (!success) {
+                    throw std::runtime_error("Failed to parse protobuf message");
+                }
 
-    /** Handle a complete protobuf message.
-     * This is a pure virtual function that must be implemented by derived classes.
-     *
-     * @param message The complete protobuf message received.
-     */
-    virtual void handleMessage(T message) = 0;
+                return {bytes_read, message};
+            }
+        } else if (bytes_read == -1 && errno != EAGAIN && errno != EWOULDBLOCK) {
+            throw std::runtime_error("Failed to read from fd: " + std::string(strerror(errno)));
+        }
+
+        return {bytes_read, std::nullopt};
+    }
 
 private:
     std::vector<char>    _buffer;

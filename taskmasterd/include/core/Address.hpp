@@ -39,6 +39,10 @@ public:
      */
     socklen_t getSockAddrLen() const { return _addrlen; }
 
+    static Address IPv4(const std::string& ip, u16 port) { return Address(Type::IPv4, ip, port); }
+    static Address IPv6(const std::string& ip, u16 port) { return Address(Type::IPv6, ip, port); }
+    static Address UNIX(const std::string& path) { return Address(Type::UNIX, path); }
+
 private:
     Type _type;
 

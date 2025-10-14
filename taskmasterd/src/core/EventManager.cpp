@@ -1,6 +1,7 @@
 #include <taskmasterd/include/core/EventManager.hpp>
 
 #include <stdexcept>
+#include <string.h>
 #include <sys/epoll.h>
 #include <unistd.h>
 
@@ -42,7 +43,8 @@ void EventManager::updateEventInternal(const FileDescriptor& handler,
     event.data.fd = handler.getFd();
 
     if (epoll_ctl(_fd, operation, handler.getFd(), &event) == -1) {
-        throw std::runtime_error("Failed to update file descriptor in epoll");
+        throw std::runtime_error("Failed to update file descriptor in epoll: " +
+                                 std::string(strerror(errno)));
     }
 
     _read_callbacks[handler.getFd()]  = read_callback;
@@ -52,7 +54,8 @@ void EventManager::updateEventInternal(const FileDescriptor& handler,
 void EventManager::unregisterEvent(const FileDescriptor& handler)
 {
     if (epoll_ctl(_fd, EPOLL_CTL_DEL, handler.getFd(), nullptr) == -1) {
-        throw std::runtime_error("Failed to remove file descriptor from epoll");
+        throw std::runtime_error("Failed to remove file descriptor from epoll: " +
+                                 std::string(strerror(errno)));
     }
 
     _read_callbacks.erase(handler.getFd());

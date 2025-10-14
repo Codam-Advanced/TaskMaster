@@ -1,6 +1,7 @@
 #include <logger/include/Logger.hpp>
 
 #include <taskmasterd/include/core/EventManager.hpp>
+#include <taskmasterd/include/ipc/Server.hpp>
 #include <taskmasterd/include/jobs/Job.hpp>
 
 #ifndef PROGRAM_NAME
@@ -18,7 +19,7 @@ int main(int argc, char** argv)
     LOG_INFO("Starting " PROGRAM_NAME);
 
     try {
-        // EventManager::initialize();
+        Server server(Socket::Type::UNIX, Address::UNIX("/tmp/taskmasterd.sock"));
 
         JobConfig config("myls", "/bin/ls ..");
         config.numprocs = 3;
