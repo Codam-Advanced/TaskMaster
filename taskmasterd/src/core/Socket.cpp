@@ -31,6 +31,7 @@ Socket::Socket(Type type, i32 fd) : FileDescriptor(fd), _type(type) {}
 void Socket::bind(const Address& address)
 {
     const i32 reuse = 1;
+    // Enable address reuse
     if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(i32)) != 0) {
         throw std::runtime_error("Failed to set SO_REUSEADDR option: " +
                                  std::string(strerror(errno)));

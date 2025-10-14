@@ -15,6 +15,7 @@ Address::Address(Type type, const std::string& address, u16 port) : _type(type)
         if (inet_pton(AF_INET, address.c_str(), &addr_in->sin_addr) != 1) {
             throw std::invalid_argument("Invalid IPv4 address: " + address);
         }
+        // Convert port to network byte order
         addr_in->sin_port = htons(port);
         _addrlen          = sizeof(struct sockaddr_in);
         break;
@@ -24,6 +25,7 @@ Address::Address(Type type, const std::string& address, u16 port) : _type(type)
         if (inet_pton(AF_INET6, address.c_str(), &addr_in6->sin6_addr) != 1) {
             throw std::invalid_argument("Invalid IPv6 address: " + address);
         }
+        // Convert port to network byte order
         addr_in6->sin6_port = htons(port);
         _addrlen            = sizeof(struct sockaddr_in6);
         break;

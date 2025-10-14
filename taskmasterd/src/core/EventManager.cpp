@@ -36,6 +36,7 @@ void EventManager::updateEventInternal(const FileDescriptor& handler,
                                        EventCallback         write_callback)
 {
     struct epoll_event event{};
+    // Set the events based on the provided callbacks
     if (read_callback)
         event.events = EPOLLIN;
     if (write_callback)
@@ -73,11 +74,15 @@ void EventManager::handleEvents()
 
     for (i32 i = 0; i < num_events; i++) {
         i32 fd = events[i].data.fd;
-        if (events[i].events & EPOLLIN) {
-            _read_callbacks.at(fd)();
-        }
-        if (events[i].events & EPOLLOUT) {
-            _write_callbacks.at(fd)();
+        try {
+            if (events[i].events & EPOLLIN) {
+                _read_callbacks.at(fd)();
+            }
+            if (events[i].events & EPOLLOUT) {
+                _write_callbacks.at(fd)();
+            }
+        } catch (const std::exception& e) {
+            LOG_ERROR("Error handling event for fd " + std::to_string(fd) + ": " + e.what());
         }
     }
 }
