@@ -29,6 +29,7 @@ int main(int argc, char** argv)
 
         for (const auto& [name, job] : nodes)
         {
+            // LOG_DEBUG("Job name: " + name + (job == NULL ? "Job is null" : "Job is not null")); 
             // print some debug info
             LOG_DEBUG(("Loaded job config:" + name).c_str());
             LOG_DEBUG(("Job name: " + job.name).c_str());
@@ -44,11 +45,11 @@ int main(int argc, char** argv)
         
 
         Job job(nodes.begin()->second);
-        Job job2((++nodes.begin())->second);
+        // Job job2((++nodes.begin())->second);
 
         job.start();
-        job2.start();
-        job2.stop();
+        // job2.start();
+        // job2.stop();
 
         while (true) 
         {
