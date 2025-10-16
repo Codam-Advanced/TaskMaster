@@ -34,6 +34,12 @@ void Process::start(const std::string& path, char* const* argv, char* const* env
     if (_pid == 0) {
         // Child process
         setpgid(0, _pgid); // If pgid is 0, pid of the child process is used as pgid
+
+        LOG_DEBUG("Executing process " + _name + " with command: " + path);
+
+        
+
+
         if (execve(path.c_str(), argv, env) == -1) {
             perror("execve failed");
             exit(EXIT_FAILURE);

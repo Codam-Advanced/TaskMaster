@@ -16,8 +16,8 @@ Job::Job(const JobConfig& config) : _config(config), _pgid(0)
     }
     _argv.push_back(nullptr);
 
-    _env.reserve(_config._env.size() + 1);
-    for (auto& [key, value] : _config._env) {
+    _env.reserve(_config.env.size() + 1);
+    for (auto& [key, value] : _config.env) {
         std::string env_entry = key + "=" + value;
         _env.push_back(env_entry.c_str());
     }
