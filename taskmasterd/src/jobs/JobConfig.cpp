@@ -13,7 +13,6 @@ void parseCmd(JobConfig* object, const YAML::Node& config)
         throw std::runtime_error("ERROR: CMD is required to be set for job" + object->name);
     }
 
-    // Add command to the cmd
     // we dont care if command is invalid this will be catched at execve
     object->cmd = config.as<std::string>();
 }
@@ -26,8 +25,6 @@ void parseNumberProcesses(JobConfig* object, const YAML::Node& config)
         object->numprocs = 1;
         return;
     }
-
-    // Add amount of procceses run. (should we set a cap supervisor doesn't have a limit)
     object->numprocs = config.as<i32>();
 }
 
@@ -35,14 +32,19 @@ void parseUnMask(JobConfig* object, const YAML::Node& config)
 {
     if (!config.IsDefined())
     {
-        // If not present default value is set to 022
+        // If not present default value is set to 022 (octal)
         object->umask = 022;
         return;
     }
 
-    // convert to mode_t and store as umask
-    // @todo maybe we should check for valid inputs only
-    object->umask = config.as<mode_t>();
+    std::string result = config.as<std::string>();
+
+    // umask must be a 3 digit octal number
+    if (result.length() != 3 || result.find_first_not_of("01234567") != std::string::npos)
+    {
+        throw std::runtime_error("ERROR: Invalid umask value for job " + object->name);
+    }
+    object->umask = static_cast<mode_t>(std::stoi(result, nullptr, 8));
 }
 
 void parseWorkingDir(JobConfig* object, const YAML::Node& config)
@@ -53,8 +55,6 @@ void parseWorkingDir(JobConfig* object, const YAML::Node& config)
         object->working_dir = ".";
         return;
     }
-
-    // covert to std::string and store in workingdir
     object->working_dir = config.as<std::string>();
 }
 
@@ -67,7 +67,6 @@ void parseAutoStart(JobConfig* object, const YAML::Node& config)
         return;
     }
 
-    // convert to bool and store in autostart
     object->autostart = config.as<bool>();
 }
 
@@ -86,7 +85,6 @@ void parseAutoRestart(JobConfig* object, const YAML::Node& config)
         return;
     }
 
-    // get the values based on the config.
     // we dont care that this can throw since this will be called in the constructor anyways.
     object->restart_policy = policies.at(config.as<std::string>());
 }
@@ -100,15 +98,15 @@ void parseExitCodes(JobConfig* object, const YAML::Node& config)
         return;
     }
 
-    try
+    // Scalar is a single value so we convert it to an single integer and push it to the vector
+    if (config.IsScalar())
     {
-        //this should work. we convert it straight into a vector<i32>
-        object->exit_codes = config.as<std::vector<i32>>();
-    }
-    catch (const std::exception& e)
-    {
-        // if it fails we try to convert it into a single i32
         object->exit_codes.push_back(config.as<i32>());
+    }
+    else
+    {
+        object->exit_codes = config.as<std::vector<i32>>();
+        
     }
 }
 
@@ -134,8 +132,6 @@ void parseStartTime(JobConfig* object, const YAML::Node& config)
         object->start_time = 1;
         return;
     }
-
-    // convert to an i32 note that a value of 0 means don't check for start time
     object->start_time = config.as<i32>();
 }
 
@@ -158,8 +154,6 @@ void parseStopSignal(JobConfig* object, const YAML::Node& config)
         object->signal = JobConfig::Signals::TERM;
         return;
    }
-
-   // conver to a string and the map will convert it into one of the signals
    object->signal = signals.at(config.as<std::string>());
 }
 
@@ -173,8 +167,6 @@ void parseStopTime(JobConfig* object, const YAML::Node& config)
         object->stop_time = 10;
         return;
     }
-
-    // convert to a i32
     object->stop_time = config.as<i32>();
 }
 
@@ -186,8 +178,6 @@ void parseSTDOUT(JobConfig* object, const YAML::Node& config)
         object->out = std::nullopt;
         return;
     }
-
-    // convert to std::string and store in out
     object->out = config.as<std::string>();
 }
 
@@ -199,8 +189,6 @@ void parseSTDERR(JobConfig* object, const YAML::Node& config)
         object->err = std::nullopt;
         return;
     }
-
-    // convert to std::string and store in err
     object->err = config.as<std::string>();
 }
 
@@ -239,11 +227,8 @@ JobConfig::JobConfig(const std::string& name, const YAML::Node& config) : name(n
         {"env", parseENV}
     };
 
-    // iterate over all the nodes in the job and call the corresponding function
     for (auto it = nodes.begin(); it != nodes.end(); ++it)
     {
-        // call the function with the current object and the node
-
         LOG_DEBUG(("Parsing node: " + it->first).c_str());
         it->second(this, config[it->first]);
     }
@@ -255,23 +240,18 @@ std::unordered_map<std::string, JobConfig> JobConfig::getJobConfigs(const std::s
 
     try 
     {
-        // Load the YAML file
         YAML::Node config = YAML::LoadFile(filename)["jobs"];
 
-        // Check if the "jobs" node exists
         if (!config.IsDefined())
         {
             LOG_FATAL("ERROR: No 'jobs' node found in the configuration file.");
             return jobConfigs;
         }
 
-        // Iterate over each job in the "jobs" node
         for (auto it = config.begin(); it != config.end(); ++it)
         {
-            // Get the job name
             std::string name = it->first.as<std::string>();
 
-            // Check if the job name already exists
             if (jobConfigs.find(name) != jobConfigs.end())
             {
                 LOG_WARNING(("ERROR: Duplicate job name found: " + name + "Skipping...").c_str());
@@ -286,8 +266,6 @@ std::unordered_map<std::string, JobConfig> JobConfig::getJobConfigs(const std::s
             catch (const std::exception& e)
             {
                 LOG_ERROR(("ERROR: Failed to parse job '" + name + "': " + e.what() + " Skipping...").c_str());
-                
-                // Skip this job and continue with the next one
                 continue;
             }
         }
@@ -296,10 +274,9 @@ std::unordered_map<std::string, JobConfig> JobConfig::getJobConfigs(const std::s
     {
         LOG_ERROR(e.what());
 
-        // clear the map
+        // clear the map since we encountered a fatal error
         jobConfigs.clear();
-        
-        // Return 
+
         return jobConfigs;
     }
 

@@ -8,7 +8,7 @@
 #include <vector>
 
 #include <logger/include/Logger.hpp>
-#include <logger/include/utils.hpp>
+#include <utils/include/utils.hpp>
 #include <yaml-cpp/yaml.h>
 
 namespace taskmasterd
