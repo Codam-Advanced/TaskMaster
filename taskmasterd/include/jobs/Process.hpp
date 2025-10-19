@@ -4,7 +4,7 @@
 #include <string>
 #include <unistd.h>
 
-#include <taskmasterd/include/core/FileDescriptor.hpp>
+#include <ipc/include/FileDescriptor.hpp>
 #include <taskmasterd/include/core/Timer.hpp>
 
 namespace taskmasterd

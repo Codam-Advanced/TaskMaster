@@ -1,7 +1,7 @@
 #pragma once
 
-#include <taskmasterd/include/core/Address.hpp>
-#include <taskmasterd/include/core/FileDescriptor.hpp>
+#include <ipc/include/Address.hpp>
+#include <ipc/include/FileDescriptor.hpp>
 #include <utils/include/utils.hpp>
 
 namespace taskmasterd

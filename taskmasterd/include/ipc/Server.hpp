@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include <taskmasterd/include/core/Socket.hpp>
+#include <ipc/include/Socket.hpp>
 #include <taskmasterd/include/ipc/Client.hpp>
 #include <utils/include/utils.hpp>
 

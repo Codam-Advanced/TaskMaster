@@ -6,9 +6,9 @@
 #include <sys/socket.h>
 #include <vector>
 
+#include <ipc/include/FileDescriptor.hpp>
 #include <logger/include/Logger.hpp>
 #include <proto/taskmaster.pb.h>
-#include <taskmasterd/include/core/FileDescriptor.hpp>
 #include <utils/include/utils.hpp>
 
 namespace taskmasterd

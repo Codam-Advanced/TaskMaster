@@ -1,6 +1,6 @@
 #pragma once
 
-#include <taskmasterd/include/core/Socket.hpp>
+#include <ipc/include/Socket.hpp>
 #include <taskmasterd/include/ipc/ProtoReader.hpp>
 #include <utils/include/utils.hpp>
 

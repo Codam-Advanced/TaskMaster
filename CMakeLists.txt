@@ -9,7 +9,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # include all libs
 add_subdirectory(libs/logger)
 add_subdirectory(libs/utils)
-add_subdirectory(libs/proto)
+add_subdirectory(libs/ipc)
 
 # To add new lib: 
 # add_subdirectory(libs/dir_name)
