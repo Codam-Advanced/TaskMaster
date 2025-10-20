@@ -5,7 +5,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#include "../../build/libs/proto/proto/taskmaster.pb.h"
+#include "../../build/libs/ipc/proto/taskmaster.pb.h"
 
 int main()
 {
