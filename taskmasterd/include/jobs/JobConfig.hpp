@@ -4,15 +4,19 @@
 #include <string>
 #include <sys/stat.h>
 #include <unordered_map>
+#include <signal.h>
 #include <vector>
 
-#include <taskmasterd/include/jobs/Signal.hpp>
-#include <utils/include/utils.hpp>
+#include <logger/include/Logger.hpp>
+#include <logger/include/utils.hpp>
+#include <yaml-cpp/yaml.h>
 
 namespace taskmasterd
 {
 struct JobConfig
 {
+    static std::unordered_map<std::string, JobConfig> getJobConfigs(const std::string& filename);
+
     using EnvMap = std::unordered_map<std::string, std::string>;
 
     enum class RestartPolicy
@@ -21,8 +25,16 @@ struct JobConfig
         ALWAYS,
         ON_FAILURE
     };
-
-    JobConfig(const std::string& name, const std::string& cmd);
+    enum class Signals : int
+    {
+        INT = SIGINT,
+        TERM = SIGTERM,
+        HUP = SIGHUP,
+        QUIT = SIGQUIT,
+        KILL = SIGKILL,
+        USR1 = SIGUSR1,
+        USR2 = SIGUSR2
+    };
 
     std::string name;
     std::string cmd;
@@ -38,11 +50,15 @@ struct JobConfig
     i32 start_time;
     i32 stop_time;
 
-    Signal stop_signal;
+    Signals signal;
 
-    std::optional<std::string> stdout_file;
-    std::optional<std::string> stderr_file;
+    std::optional<std::string> out;
+    std::optional<std::string> err;
 
-    EnvMap _env;
+    EnvMap env;
+
+    private:
+        // You are not supposed to create your own JobConfig objects, use the static method getJobConfigs instead.
+        JobConfig(const std::string& name, const YAML::Node& config);
 };
-} // namespace taskmasterd
+}
