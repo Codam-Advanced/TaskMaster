@@ -37,9 +37,6 @@ void Process::start(const std::string& path, char* const* argv, char* const* env
 
         LOG_DEBUG("Executing process " + _name + " with command: " + path);
 
-        
-
-
         if (execve(path.c_str(), argv, env) == -1) {
             perror("execve failed");
             exit(EXIT_FAILURE);
