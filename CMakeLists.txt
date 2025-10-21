@@ -11,6 +11,7 @@ set(CMAKE_CXX_STANDARD 23)
 # include all libs
 add_subdirectory(libs/logger)
 add_subdirectory(libs/utils)
+add_subdirectory(libs/ipc)
 
 # include cmake module taskmasterd
 add_subdirectory(taskmasterd)

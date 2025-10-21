@@ -13,15 +13,16 @@
 namespace taskmasterd
 {
 Process::Process(const std::string& name, pid_t pgid)
-    : EventHandler(-1), _name(name), _pid(-1), _pgid(pgid), _state(State::STOPPED)
+    : _name(name), _pid(-1), _pgid(pgid), _state(State::STOPPED)
 {
 }
 
 Process::Process(Process&& other) noexcept
-    : EventHandler(std::move(other)), _name(std::move(other._name)), _pid(other._pid),
+    : FileDescriptor(std::move(other)), _name(std::move(other._name)), _pid(other._pid),
       _pgid(other._pgid), _state(other._state), _killTimer(std::move(other._killTimer))
 {
-    EventManager::getInstance()->updateEvent(this, EventType::READ);
+    EventManager::getInstance().updateEvent(
+        *this, std::bind(&Process::onStateChange, this), nullptr);
 }
 
 void Process::start(const std::string& path, char* const* argv, char* const* env)
@@ -51,7 +52,9 @@ void Process::start(const std::string& path, char* const* argv, char* const* env
     if ((_fd = pidfd_open(_pid, 0)) == -1)
         throw std::runtime_error("Failed to open pidfd for process '" + _name +
                                  "': " + strerror(errno));
-    EventManager::getInstance()->registerEvent(this, EventType::READ);
+
+    EventManager::getInstance().registerEvent(
+        *this, std::bind(&Process::onStateChange, this), nullptr);
 }
 
 void Process::stop(i32 timeout)
@@ -83,7 +86,7 @@ void Process::kill()
     _state = State::STOPPING;
 }
 
-void Process::handleRead()
+void Process::onStateChange()
 {
     i32   status;
     pid_t result = waitpid(_pid, &status, 0);
@@ -92,7 +95,7 @@ void Process::handleRead()
 
     _killTimer.reset();
 
-    EventManager::getInstance()->unregisterEvent(this);
+    EventManager::getInstance().unregisterEvent(*this);
     if (WIFEXITED(status)) {
         if (_state == State::STOPPING) {
             LOG_DEBUG("Process " + _name + " stopped with status " +

@@ -10,7 +10,7 @@
 namespace taskmasterd
 {
 Timer::Timer(i32 interval, std::function<void()> callback)
-    : EventHandler(-1), _interval(interval), _state(State::STOPPED), _callback(callback)
+    : _interval(interval), _state(State::STOPPED), _callback(callback)
 {
     _fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
     if (_fd == -1) {
@@ -21,7 +21,7 @@ Timer::Timer(i32 interval, std::function<void()> callback)
 Timer::~Timer()
 {
     if (_state == State::RUNNING) {
-        EventManager::getInstance()->unregisterEvent(this);
+        EventManager::getInstance().unregisterEvent(*this);
     }
 }
 
@@ -37,12 +37,12 @@ void Timer::start()
         throw std::runtime_error("Failed to set timerfd time");
     }
 
-    EventManager::getInstance()->registerEvent(this, EventType::READ);
+    EventManager::getInstance().registerEvent(*this, std::bind(&Timer::onExpire, this), nullptr);
 
     _state = State::RUNNING;
 }
 
-void Timer::handleRead()
+void Timer::onExpire()
 {
     _state = State::STOPPED;
 

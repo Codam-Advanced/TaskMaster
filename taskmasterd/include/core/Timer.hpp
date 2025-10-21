@@ -2,12 +2,12 @@
 
 #include <functional>
 
-#include <taskmasterd/include/core/EventHandler.hpp>
+#include <ipc/include/FileDescriptor.hpp>
 #include <utils/include/utils.hpp>
 
 namespace taskmasterd
 {
-class Timer : public EventHandler
+class Timer : public FileDescriptor
 {
 public:
     enum class State
@@ -34,12 +34,12 @@ public:
     void start();
 
     /**
-     * @brief Handle read events for the timer.
+     * @brief Callback function for timer expiration.
      *
      * This method is called when the timer expires. It reads the expiration count
      * from the timer file descriptor and invokes the callback function.
      */
-    void handleRead() override;
+    void onExpire();
 
 private:
     i32   _interval;

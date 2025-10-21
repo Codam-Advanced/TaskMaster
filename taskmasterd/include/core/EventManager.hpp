@@ -1,15 +1,17 @@
 #pragma once
 
-#include <memory>
+#include <functional>
 
-#include <taskmasterd/include/core/EventHandler.hpp>
+#include <ipc/include/FileDescriptor.hpp>
 #include <utils/include/utils.hpp>
 
 namespace taskmasterd
 {
-class EventManager
+class EventManager : public FileDescriptor
 {
 public:
+    using EventCallback = std::function<void()>;
+
     /**
      * @brief Construct a new EventManager object.
      *
@@ -17,33 +19,33 @@ public:
      *
      */
     EventManager();
-    virtual ~EventManager();
 
     /**
-     * @brief Register an event handler for a specific event type.
+     * @brief Register an event handler for a file descriptor.
      *
-     * @param handler Pointer to the EventHandler instance.
-     * @param type The type of event to register (READ or WRITE).
-     *
+     * @param handler The FileDescriptor to monitor.
+     * @param read_callback The callback function to invoke on read events.
+     * @param write_callback The callback function to invoke on write events.
      */
-    void registerEvent(EventHandler* handler, EventType type);
+    void registerEvent(const FileDescriptor& handler,
+                       EventCallback         read_callback  = nullptr,
+                       EventCallback         write_callback = nullptr);
 
     /**
-     * @brief Update the event type for an existing event handler.
-     *
-     * @param handler Pointer to the EventHandler instance.
-     * @param type The new type of event to register (READ or WRITE).
-     *
+     * @brief Update the event handler for a file descriptor.
+     * @param handler The FileDescriptor to update.
+     * @param read_callback The new callback function for read events.
+     * @param write_callback The new callback function for write events.
      */
-    void updateEvent(EventHandler* handler, EventType type);
+    void updateEvent(const FileDescriptor& handler,
+                     EventCallback         read_callback,
+                     EventCallback         write_callback);
 
     /**
-     * @brief Unregister an event handler.
-     *
-     * @param handler Pointer to the EventHandler instance to unregister.
-     *
+     * @brief Unregister an event handler for a file descriptor.
+     * @param handler The FileDescriptor to stop monitoring.
      */
-    void unregisterEvent(EventHandler* handler);
+    void unregisterEvent(const FileDescriptor& handler);
 
     /**
      * @brief Wait for events and dispatch them to the appropriate handlers.
@@ -56,24 +58,23 @@ public:
     void handleEvents();
 
     /**
-     * @brief Initialize the singleton instance of EventManager.
-     *
-     * This method must be called before using getInstance().
-     * It creates a single instance of EventManager.
-     *
-     */
-    static void initialize();
-
-    /**
      * @brief Get the singleton instance of EventManager.
      *
-     * @return std::unique_ptr<EventManager>& Reference to the singleton instance.
+     * @return The singleton instance.
      */
-    static std::unique_ptr<EventManager>& getInstance();
+    static EventManager& getInstance();
 
 private:
-    i32 _epoll_fd;
+    using EventCallbackMap = std::unordered_map<i32, EventCallback>;
 
-    const static i32 MAX_EVENTS = 10;
+    void updateEventInternal(const FileDescriptor& handler,
+                             i32                   operation,
+                             EventCallback         read_callback,
+                             EventCallback         write_callback);
+
+    const static i32 MAX_EVENTS = 1024;
+
+    EventCallbackMap _read_callbacks;
+    EventCallbackMap _write_callbacks;
 };
 } // namespace taskmasterd
