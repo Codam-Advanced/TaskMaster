@@ -24,6 +24,12 @@ Job::Job(const JobConfig& config) : _config(config), _pgid(0)
     _env.push_back(nullptr);
 }
 
+Job::Job(Job&& other)
+    : _config(std::move(other._config)), _args(std::move(other._args)), _argv(std::move(other._argv)),
+      _env(std::move(other._env)), _pgid(other._pgid), _processes(std::move(other._processes))
+{
+}
+
 void Job::start()
 {
     for (i32 i = 0; i < _config.numprocs; i++) {

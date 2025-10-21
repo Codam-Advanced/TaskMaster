@@ -1,14 +1,14 @@
 #pragma once
 
 #include <optional>
+#include <signal.h>
 #include <string>
 #include <sys/stat.h>
 #include <unordered_map>
-#include <signal.h>
 #include <vector>
 
 #include <logger/include/Logger.hpp>
-#include <logger/include/utils.hpp>
+#include <utils/include/utils.hpp>
 #include <yaml-cpp/yaml.h>
 
 namespace taskmasterd
@@ -27,9 +27,9 @@ struct JobConfig
     };
     enum class Signals : int
     {
-        INT = SIGINT,
+        INT  = SIGINT,
         TERM = SIGTERM,
-        HUP = SIGHUP,
+        HUP  = SIGHUP,
         QUIT = SIGQUIT,
         KILL = SIGKILL,
         USR1 = SIGUSR1,
@@ -57,8 +57,9 @@ struct JobConfig
 
     EnvMap env;
 
-    private:
-        // You are not supposed to create your own JobConfig objects, use the static method getJobConfigs instead.
-        JobConfig(const std::string& name, const YAML::Node& config);
+private:
+    // You are not supposed to create your own JobConfig objects, use the static method
+    // getJobConfigs instead.
+    JobConfig(const std::string& name, const YAML::Node& config);
 };
-}
+} // namespace taskmasterd
