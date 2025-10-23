@@ -1,3 +1,4 @@
+#include "taskmasterd/include/jobs/JobManager.hpp"
 #include <logger/include/Logger.hpp>
 
 #include <iostream>
@@ -12,36 +13,6 @@
 
 using namespace taskmasterd;
 
-std::vector<Job> start()
-{
-    std::vector<Job> jobs;
-
-    try {
-        std::unordered_map<std::string, JobConfig> nodes =
-            JobConfig::getJobConfigs("../tastconfig.yaml");
-
-        for (const auto& [name, config] : nodes) {
-            Job job(config);
-            if (config.autostart) {
-                LOG_INFO("Autostarting job: " + name);
-                job.start();
-            }
-            jobs.push_back(std::move(job));
-        }
-    } catch (const std::exception& e) {
-        LOG_FATAL("ERROR: Unable to start jobs reason: " + std::string(e.what()));
-    }
-
-    return jobs;
-}
-
-void stop(std::vector<Job>& jobs)
-{
-    for (auto& job : jobs) {
-        job.stop();
-    }
-}
-
 int main(int argc, char** argv)
 {
     (void)argc;
@@ -51,13 +22,12 @@ int main(int argc, char** argv)
     LOG_INFO("Starting " PROGRAM_NAME);
 
     try {
-        std::unordered_map<std::string, JobConfig> nodes =
-            JobConfig::getJobConfigs("../tastconfig.yaml");
+        JobManager manager("../tastconfig.yaml");
 
-        std::vector<Job> jobs = start();
-        stop(jobs);
+        manager.start();
+        manager.stop("sleepy");
 
-        Server server(Socket::Type::UNIX, Address::UNIX("/tmp/taskmasterd.sock"));
+        // Server server(Socket::Type::UNIX, Address::UNIX("/tmp/taskmasterd.sock"));
 
         while (true) {
             EventManager::getInstance().handleEvents();
