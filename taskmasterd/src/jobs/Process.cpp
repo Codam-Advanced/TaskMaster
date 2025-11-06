@@ -13,16 +13,22 @@
 namespace taskmasterd
 {
 Process::Process(const std::string& name, pid_t pgid)
-    : _name(name), _pid(-1), _pgid(pgid), _state(State::STOPPED)
+    : _name(name)
+    , _pid(-1)
+    , _pgid(pgid)
+    , _state(State::STOPPED)
 {
 }
 
 Process::Process(Process&& other) noexcept
-    : FileDescriptor(std::move(other)), _name(std::move(other._name)), _pid(other._pid),
-      _pgid(other._pgid), _state(other._state), _killTimer(std::move(other._killTimer))
+    : FileDescriptor(std::move(other))
+    , _name(std::move(other._name))
+    , _pid(other._pid)
+    , _pgid(other._pgid)
+    , _state(other._state)
+    , _killTimer(std::move(other._killTimer))
 {
-    EventManager::getInstance().updateEvent(
-        *this, std::bind(&Process::onStateChange, this), nullptr);
+    EventManager::getInstance().updateEvent(*this, std::bind(&Process::onStateChange, this), nullptr);
 }
 
 void Process::start(const std::string& path, char* const* argv, char* const* env)
@@ -50,11 +56,9 @@ void Process::start(const std::string& path, char* const* argv, char* const* env
     _state = State::STARTING;
     LOG_DEBUG("Started process " + _name + " with PID " + std::to_string(_pid));
     if ((_fd = pidfd_open(_pid, 0)) == -1)
-        throw std::runtime_error("Failed to open pidfd for process '" + _name +
-                                 "': " + strerror(errno));
+        throw std::runtime_error("Failed to open pidfd for process '" + _name + "': " + strerror(errno));
 
-    EventManager::getInstance().registerEvent(
-        *this, std::bind(&Process::onStateChange, this), nullptr);
+    EventManager::getInstance().registerEvent(*this, std::bind(&Process::onStateChange, this), nullptr);
 }
 
 void Process::stop(i32 timeout)
@@ -98,12 +102,10 @@ void Process::onStateChange()
     EventManager::getInstance().unregisterEvent(*this);
     if (WIFEXITED(status)) {
         if (_state == State::STOPPING) {
-            LOG_DEBUG("Process " + _name + " stopped with status " +
-                      std::to_string(WEXITSTATUS(status)));
+            LOG_DEBUG("Process " + _name + " stopped with status " + std::to_string(WEXITSTATUS(status)));
             _state = State::STOPPED;
         } else {
-            LOG_DEBUG("Process " + _name + " exited with status " +
-                      std::to_string(WEXITSTATUS(status)));
+            LOG_DEBUG("Process " + _name + " exited with status " + std::to_string(WEXITSTATUS(status)));
             _state = State::EXITED;
         }
     } else if (WIFSIGNALED(status)) {

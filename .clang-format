@@ -32,12 +32,13 @@ AlignTrailingComments: true
 # Place every argument/parameter on new line
 BinPackArguments: false
 BinPackParameters: false
+BreakConstructorInitializers: BeforeComma
 
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Inline
 
 # Wrap after 100 characters
-ColumnLimit: 100
+ColumnLimit: 200
 
 SpaceBeforeParens: ControlStatements

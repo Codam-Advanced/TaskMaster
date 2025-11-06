@@ -10,7 +10,9 @@
 namespace taskmasterd
 {
 Timer::Timer(i32 interval, std::function<void()> callback)
-    : _interval(interval), _state(State::STOPPED), _callback(callback)
+    : _interval(interval)
+    , _state(State::STOPPED)
+    , _callback(callback)
 {
     _fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
     if (_fd == -1) {

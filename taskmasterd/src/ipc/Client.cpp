@@ -49,8 +49,7 @@ void Client::handleRead()
 void Client::handleMessage(proto::Command command)
 {
     // Handle the received command
-    LOG_INFO("Received command from client fd " + std::to_string(_fd) + ": " +
-             command.DebugString());
+    LOG_INFO("Received command from client fd " + std::to_string(_fd) + ": " + command.DebugString());
     // TODO: Process the command as needed
 }
 } // namespace taskmasterd

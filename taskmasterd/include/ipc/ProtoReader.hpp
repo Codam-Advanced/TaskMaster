@@ -44,15 +44,12 @@ public:
                 _message_size = ntohl(message_size);
             }
 
-            if (_message_size.has_value() &&
-                _buffer.size() >= sizeof(i32) + _message_size.value()) {
+            if (_message_size.has_value() && _buffer.size() >= sizeof(i32) + _message_size.value()) {
                 // We have a complete message
                 T    message;
-                bool success =
-                    message.ParseFromArray(_buffer.data() + sizeof(i32), _message_size.value());
+                bool success = message.ParseFromArray(_buffer.data() + sizeof(i32), _message_size.value());
 
-                _buffer.erase(_buffer.begin(),
-                              _buffer.begin() + sizeof(i32) + _message_size.value());
+                _buffer.erase(_buffer.begin(), _buffer.begin() + sizeof(i32) + _message_size.value());
                 _message_size.reset();
 
                 if (!success) {

@@ -9,31 +9,25 @@
 
 namespace taskmasterd
 {
-EventManager::EventManager() : FileDescriptor(epoll_create1(0))
+EventManager::EventManager()
+    : FileDescriptor(epoll_create1(0))
 {
     if (_fd == -1) {
         throw std::runtime_error("Failed to create epoll file descriptor");
     }
 }
 
-void EventManager::registerEvent(const FileDescriptor& handler,
-                                 EventCallback         read_callback,
-                                 EventCallback         write_callback)
+void EventManager::registerEvent(const FileDescriptor& handler, EventCallback read_callback, EventCallback write_callback)
 {
     this->updateEventInternal(handler, EPOLL_CTL_ADD, read_callback, write_callback);
 }
 
-void EventManager::updateEvent(const FileDescriptor& handler,
-                               EventCallback         read_callback,
-                               EventCallback         write_callback)
+void EventManager::updateEvent(const FileDescriptor& handler, EventCallback read_callback, EventCallback write_callback)
 {
     this->updateEventInternal(handler, EPOLL_CTL_MOD, read_callback, write_callback);
 }
 
-void EventManager::updateEventInternal(const FileDescriptor& handler,
-                                       i32                   operation,
-                                       EventCallback         read_callback,
-                                       EventCallback         write_callback)
+void EventManager::updateEventInternal(const FileDescriptor& handler, i32 operation, EventCallback read_callback, EventCallback write_callback)
 {
     struct epoll_event event{};
     // Set the events based on the provided callbacks
@@ -44,8 +38,7 @@ void EventManager::updateEventInternal(const FileDescriptor& handler,
     event.data.fd = handler.getFd();
 
     if (epoll_ctl(_fd, operation, handler.getFd(), &event) == -1) {
-        throw std::runtime_error("Failed to update file descriptor in epoll: " +
-                                 std::string(strerror(errno)));
+        throw std::runtime_error("Failed to update file descriptor in epoll: " + std::string(strerror(errno)));
     }
 
     _read_callbacks[handler.getFd()]  = read_callback;
@@ -55,8 +48,7 @@ void EventManager::updateEventInternal(const FileDescriptor& handler,
 void EventManager::unregisterEvent(const FileDescriptor& handler)
 {
     if (epoll_ctl(_fd, EPOLL_CTL_DEL, handler.getFd(), nullptr) == -1) {
-        throw std::runtime_error("Failed to remove file descriptor from epoll: " +
-                                 std::string(strerror(errno)));
+        throw std::runtime_error("Failed to remove file descriptor from epoll: " + std::string(strerror(errno)));
     }
 
     _read_callbacks.erase(handler.getFd());

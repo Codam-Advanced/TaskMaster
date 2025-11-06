@@ -6,7 +6,9 @@
 
 namespace taskmasterd
 {
-Job::Job(const JobConfig& config) : _config(config), _pgid(0)
+Job::Job(const JobConfig& config)
+    : _config(config)
+    , _pgid(0)
 {
     // Prepare argv and env for execve
     _args = split_shell(_config.cmd);
@@ -25,8 +27,12 @@ Job::Job(const JobConfig& config) : _config(config), _pgid(0)
 }
 
 Job::Job(Job&& other)
-    : _config(std::move(other._config)), _args(std::move(other._args)), _argv(std::move(other._argv)),
-      _env(std::move(other._env)), _pgid(other._pgid), _processes(std::move(other._processes))
+    : _config(std::move(other._config))
+    , _args(std::move(other._args))
+    , _argv(std::move(other._argv))
+    , _env(std::move(other._env))
+    , _pgid(other._pgid)
+    , _processes(std::move(other._processes))
 {
 }
 
@@ -36,9 +42,7 @@ void Job::start()
         std::string proc_name = _config.name + "_" + std::to_string(i);
         Process&    proc      = _processes.emplace_back(proc_name, _pgid);
 
-        proc.start(_argv[0],
-                   const_cast<char* const*>(_argv.data()),
-                   const_cast<char* const*>(_env.data()));
+        proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()));
         // Set the job's pgid to the first process's pid
         if (_pgid == 0) {
             _pgid = proc.getPid();

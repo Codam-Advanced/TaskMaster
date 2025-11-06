@@ -20,7 +20,6 @@ public:
     Job(Job&&);
     virtual ~Job() = default;
 
-
     /**
      * @brief Start all processes defined in the job configuration.
      *
@@ -42,9 +41,9 @@ public:
      * @return The job configuration.
      */
     const JobConfig& getConfig() const { return _config; }
-    
+
 private:
-    JobConfig _config;
+    JobConfig                _config;
     std::vector<std::string> _args;
     std::vector<const char*> _argv;
     std::vector<const char*> _env;

@@ -7,7 +7,8 @@
 namespace taskmasterd
 {
 
-JobManager::JobManager(const std::string& config_path) : _config(config_path)
+JobManager::JobManager(const std::string& config_path)
+    : _config(config_path)
 {
     reloadJobs(config_path);
 }
