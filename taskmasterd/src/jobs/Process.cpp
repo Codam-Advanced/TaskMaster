@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <taskmasterd/include/jobs/Process.hpp>
 
 #include <signal.h>
@@ -12,11 +13,13 @@
 
 namespace taskmasterd
 {
-Process::Process(const std::string& name, pid_t pgid)
+Process::Process(const std::string& name, pid_t pgid, std::function<void(Process&, i32)> callback)
     : _name(name)
     , _pid(-1)
     , _pgid(pgid)
     , _state(State::STOPPED)
+    , _restarts(0)
+    , _onExit(callback)
 {
 }
 
@@ -26,6 +29,8 @@ Process::Process(Process&& other) noexcept
     , _pid(other._pid)
     , _pgid(other._pgid)
     , _state(other._state)
+    , _restarts(other.getRestarts())
+    , _onExit(std::move(other._onExit))
     , _killTimer(std::move(other._killTimer))
 {
     EventManager::getInstance().updateEvent(*this, std::bind(&Process::onStateChange, this), nullptr);
@@ -107,6 +112,7 @@ void Process::onStateChange()
         } else {
             LOG_DEBUG("Process " + _name + " exited with status " + std::to_string(WEXITSTATUS(status)));
             _state = State::EXITED;
+            _onExit(*this, WEXITSTATUS(status));
         }
     } else if (WIFSIGNALED(status)) {
         LOG_DEBUG("Process " + _name + " terminated by signal " + std::to_string(WTERMSIG(status)));

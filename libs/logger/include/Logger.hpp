@@ -1,11 +1,7 @@
 #pragma once
 
-#include <filesystem>
-#include <fstream>
 #include <memory>
-#include <optional>
 #include <string>
-#include <string_view>
 
 #define COLOR_RESET   "\033[0m"
 #define COLOR_FATAL   "\033[38;5;208m"

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <unistd.h>
+#include <unordered_map>
 #include <vector>
 
 #include <taskmasterd/include/jobs/JobConfig.hpp>
@@ -17,7 +18,6 @@ public:
      * @param config The job configuration.
      */
     Job(const JobConfig& config);
-    Job(Job&&);
     virtual ~Job() = default;
 
     /**
@@ -34,6 +34,13 @@ public:
      * It starts a timer to wait for 'stop_time' seconds for each process to exit gracefully.
      */
     void stop();
+
+    /**
+     * @brief function that is called by a process when it exited
+     * 
+     * This method will handle any exit removing or auto restarting a new process
+     */
+    void onExit(Process&, i32 status_code);
 
     /**
      * @brief Get the job configuration.

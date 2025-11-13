@@ -1,7 +1,7 @@
+#include "logger/include/Logger.hpp"
+#include "taskmasterd/include/jobs/JobConfig.hpp"
 #include <taskmasterd/include/jobs/Job.hpp>
-
 #include <bits/stdc++.h>
-
 #include <utils/include/utils.hpp>
 
 namespace taskmasterd
@@ -26,21 +26,11 @@ Job::Job(const JobConfig& config)
     _env.push_back(nullptr);
 }
 
-Job::Job(Job&& other)
-    : _config(std::move(other._config))
-    , _args(std::move(other._args))
-    , _argv(std::move(other._argv))
-    , _env(std::move(other._env))
-    , _pgid(other._pgid)
-    , _processes(std::move(other._processes))
-{
-}
-
 void Job::start()
 {
     for (i32 i = 0; i < _config.numprocs; i++) {
         std::string proc_name = _config.name + "_" + std::to_string(i);
-        Process&    proc      = _processes.emplace_back(proc_name, _pgid);
+        Process &proc = _processes.emplace_back(proc_name, _pgid, std::bind(&Job::onExit, this, std::placeholders::_1, std::placeholders::_2));
 
         proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()));
         // Set the job's pgid to the first process's pid
@@ -56,4 +46,30 @@ void Job::stop()
         proc.stop(_config.stop_time);
     }
 }
+
+void Job::onExit(Process& proc, i32 status_code)
+{
+    LOG_DEBUG("An process exited from job " + _config.name);
+    if (_config.restart_policy == JobConfig::RestartPolicy::NEVER) {
+        return;
+    }
+    if (proc.getRestarts() == _config.start_retries) {
+        LOG_INFO("Process stopped max retries reached " + proc.getName());
+        return;
+    }
+    proc.addRestart();
+
+    if (_config.restart_policy == JobConfig::RestartPolicy::ALWAYS) {
+        proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()));
+    } else if (_config.restart_policy == JobConfig::RestartPolicy::ON_FAILURE) {
+        for (auto& code : _config.exit_codes) {
+            if (code == status_code) {
+                // if the status code is known its not an unexpected exit
+                return;
+            }
+        }
+        proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()));
+    }
+}
+
 } // namespace taskmasterd
