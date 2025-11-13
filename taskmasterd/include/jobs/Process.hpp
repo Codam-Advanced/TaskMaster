@@ -31,7 +31,7 @@ public:
      * @param name The name of the process.
      * @param pgid The process group ID. If 0, the child's PID will be used as PGID.
      */
-    Process(const std::string& name, pid_t pgid);
+    Process(const std::string& name, pid_t pgid, std::function<void(Process&, i32)> callback);
     Process(Process&&) noexcept;
     virtual ~Process() = default;
 
@@ -68,12 +68,22 @@ public:
 
     pid_t getPid() const { return _pid; }
 
+    State getState() const { return _state; }
+
+    i32 getRestarts() const { return _restarts; }
+
+    const std::string& getName() const { return _name; }
+
+    void addRestart() { _restarts++; }
+
 private:
     std::string _name;
     pid_t       _pid;
     pid_t       _pgid;
     State       _state;
+    i32         _restarts;
 
+    std::function<void(Process&, i32)>   _onExit;
     std::unique_ptr<Timer> _killTimer;
 };
 } // namespace taskmasterd

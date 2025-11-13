@@ -1,7 +1,7 @@
 jobs:
   nginx:
     cmd: "/usr/local/bin/nginx -c /etc/nginx/test.conf"
-    numprocs: 1
+    numprocs: 10
     umask: 022
     workingdir: /tmp
     autostart: true
@@ -20,7 +20,7 @@ jobs:
       ANSWER: 42
   sleepy:
     cmd: "/usr/bin/sleep 10"
-    numprocs: 1
+    numprocs: 10
     umask: 077
     workingdir: /tmp
     autostart: true

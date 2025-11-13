@@ -1,5 +1,4 @@
 #include <functional>
-#include <iostream>
 #include <taskmasterd/include/jobs/JobConfig.hpp>
 
 namespace taskmasterd

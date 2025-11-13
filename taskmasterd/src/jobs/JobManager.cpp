@@ -2,7 +2,6 @@
 #include "taskmasterd/include/jobs/JobManager.hpp"
 #include "logger/include/Logger.hpp"
 #include "taskmasterd/include/jobs/Job.hpp"
-#include <exception>
 #include <stdexcept>
 namespace taskmasterd
 {
@@ -88,9 +87,7 @@ void JobManager::reloadJobs(const std::string& config_path)
     std::unordered_map<std::string, JobConfig> nodes = JobConfig::getJobConfigs(config_path);
 
     for (const auto& [name, config] : nodes) {
-        std::pair<std::string, Job> item(name, Job(config));
-
-        _jobs.emplace(std::move(item));
+        _jobs.emplace(name, config);
     }
 }
 
