@@ -8,6 +8,7 @@ enum CommandType {
     RESTART = 2;
     STATUS = 3;
     RELOAD = 4;
+    TERMINATE = 5;
 }
 
 message Command {

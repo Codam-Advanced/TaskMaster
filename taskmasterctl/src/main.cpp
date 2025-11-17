@@ -1,5 +1,6 @@
 #include <iostream>
 #include <logger/include/Logger.hpp>
+#include <taskmasterctl/include/cli/userInput.hpp>
 
 #include <ipc/include/FileDescriptor.hpp>
 #include <proto/taskmaster.pb.h>
@@ -73,6 +74,16 @@ int client_test()
 int main()
 {
     Logger::LogInterface::Initialize(PROGRAM_NAME, Logger::LogLevel::Debug, true);
+
+    while (true) {
+        try {
+            proto::Command command = taskmasterctl::getCommandFromUser();
+
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << '\n';
+            return 1;
+        }
+    }
 
     return (client_test());
 }
