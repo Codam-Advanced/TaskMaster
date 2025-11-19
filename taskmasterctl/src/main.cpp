@@ -80,7 +80,7 @@ int main()
             proto::Command command = taskmasterctl::getCommandFromUser();
 
         } catch (const std::exception& e) {
-            std::cerr << e.what() << '\n';
+            LOG_ERROR(e.what())
             return 1;
         }
     }

@@ -28,9 +28,9 @@ static bool parseCommandArgs(std::string& input, proto::Command& command)
     std::string commandArg;
 
     while (!input.empty()) {
-        LOG_DEBUG(input + ": Added as argument")
         commandArg = getToken(input);
         command.add_args(commandArg);
+        LOG_DEBUG(commandArg + ": Added as argument")
     }
     return true;
 }
