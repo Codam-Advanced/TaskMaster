@@ -46,6 +46,13 @@ public:
     void listen(i32 backlog = 5);
 
     /**
+     * @brief Connects the socket to the given address.
+     * 
+     * @param address The address to connect the socket to. 
+     */
+    void connect(const Address& address);
+
+    /**
      * @brief Accept a new connection.
      *
      * @return A new Socket object representing the accepted connection.

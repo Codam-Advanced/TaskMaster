@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <sys/socket.h>
+#include <sys/types.h>
 
 namespace ipc
 {
@@ -49,6 +50,14 @@ void Socket::listen(i32 backlog)
     }
 }
 
+void Socket::connect(const Address& address)
+{
+    const sockaddr& addr = address.getSockAddr();
+    if (::connect(_fd, (struct sockaddr*)&addr, address.getSockAddrLen()) == -1) {
+        throw std::runtime_error("Failed to connect to the server");
+    }
+}
+
 Socket Socket::accept()
 {
     // TODO: Store client address if needed
@@ -61,4 +70,4 @@ Socket Socket::accept()
 
     return socket;
 }
-} // namespace taskmasterd
+} // namespace ipc
