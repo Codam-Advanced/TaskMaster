@@ -7,7 +7,7 @@
 
 namespace taskmasterd
 {
-Server::Server(Socket::Type type, const Address& address, i32 backlog) : Socket(type)
+Server::Server(ipc::Socket::Type type, const ipc::Address& address, i32 backlog) : ipc::Socket(type)
 {
     this->bind(address);
     this->listen(backlog);
@@ -25,7 +25,7 @@ Server::~Server()
 void Server::onAccept()
 {
     // Accept a new connection
-    Socket client = this->accept();
+    ipc::Socket client = this->accept();
 
     _clients.emplace_back(std::make_unique<Client>(std::move(client)));
 

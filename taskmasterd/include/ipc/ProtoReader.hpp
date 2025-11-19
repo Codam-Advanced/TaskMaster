@@ -28,7 +28,7 @@ public:
      * @return A pair containing the number of bytes read and an optional parsed message or
      * std::nullopt if a complete message has not yet been received.
      */
-    std::pair<isize, std::optional<T>> read(const FileDescriptor& fd)
+    std::pair<isize, std::optional<T>> read(const ipc::FileDescriptor& fd)
     {
         const usize BUFFER_SIZE = 4096;
 

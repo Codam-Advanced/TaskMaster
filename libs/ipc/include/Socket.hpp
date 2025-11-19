@@ -4,7 +4,7 @@
 #include <ipc/include/FileDescriptor.hpp>
 #include <utils/include/utils.hpp>
 
-namespace taskmasterd
+namespace ipc
 {
 class Socket : public FileDescriptor
 {

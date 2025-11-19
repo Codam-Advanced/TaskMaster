@@ -6,7 +6,7 @@
 
 namespace taskmasterd
 {
-class Client : Socket // : public ProtoReader<proto::Command>
+class Client : ipc::Socket // : public ProtoReader<proto::Command>
 {
 public:
     /**
@@ -14,7 +14,7 @@ public:
      *
      * @param socket The connected socket representing the client.
      */
-    Client(Socket&& socket);
+    Client(ipc::Socket&& socket);
     virtual ~Client();
 
     void handleRead();

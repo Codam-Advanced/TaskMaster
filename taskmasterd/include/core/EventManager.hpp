@@ -7,7 +7,7 @@
 
 namespace taskmasterd
 {
-class EventManager : public FileDescriptor
+class EventManager : public ipc::FileDescriptor
 {
 public:
     using EventCallback = std::function<void()>;
@@ -27,7 +27,7 @@ public:
      * @param read_callback The callback function to invoke on read events.
      * @param write_callback The callback function to invoke on write events.
      */
-    void registerEvent(const FileDescriptor& handler,
+    void registerEvent(const ipc::FileDescriptor& handler,
                        EventCallback         read_callback  = nullptr,
                        EventCallback         write_callback = nullptr);
 
@@ -37,7 +37,7 @@ public:
      * @param read_callback The new callback function for read events.
      * @param write_callback The new callback function for write events.
      */
-    void updateEvent(const FileDescriptor& handler,
+    void updateEvent(const ipc::FileDescriptor& handler,
                      EventCallback         read_callback,
                      EventCallback         write_callback);
 
@@ -45,7 +45,7 @@ public:
      * @brief Unregister an event handler for a file descriptor.
      * @param handler The FileDescriptor to stop monitoring.
      */
-    void unregisterEvent(const FileDescriptor& handler);
+    void unregisterEvent(const ipc::FileDescriptor& handler);
 
     /**
      * @brief Wait for events and dispatch them to the appropriate handlers.
@@ -67,7 +67,7 @@ public:
 private:
     using EventCallbackMap = std::unordered_map<i32, EventCallback>;
 
-    void updateEventInternal(const FileDescriptor& handler,
+    void updateEventInternal(const ipc::FileDescriptor& handler,
                              i32                   operation,
                              EventCallback         read_callback,
                              EventCallback         write_callback);

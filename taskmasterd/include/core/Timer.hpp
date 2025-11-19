@@ -7,7 +7,7 @@
 
 namespace taskmasterd
 {
-class Timer : public FileDescriptor
+class Timer : public ipc::FileDescriptor
 {
 public:
     enum class State

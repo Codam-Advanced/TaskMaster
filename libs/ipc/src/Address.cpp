@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <string.h>
 
-namespace taskmasterd
+namespace ipc
 {
 Address::Address(Type type, const std::string& address, u16 port) : _type(type)
 {

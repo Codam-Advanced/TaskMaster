@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <sys/socket.h>
 
-namespace taskmasterd
+namespace ipc
 {
 Socket::Socket(Type type) : FileDescriptor(-1), _type(type)
 {

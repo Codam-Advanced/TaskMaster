@@ -26,7 +26,7 @@ int main(int argc, char** argv)
 
         manager.start();
 
-        Server server(Socket::Type::UNIX, Address::UNIX("/tmp/taskmasterd.sock"));
+        Server server(ipc::Socket::Type::UNIX, ipc::Address::UNIX("/tmp/taskmasterd.sock"));
 
         while (true) {
             EventManager::getInstance().handleEvents();
