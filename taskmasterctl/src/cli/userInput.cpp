@@ -1,5 +1,6 @@
 #include <logger/include/Logger.hpp>
 #include <taskmasterctl/include/cli/userInput.hpp>
+#include <utils/include/utils.hpp>
 
 #include <iostream>
 #include <optional>
@@ -48,35 +49,14 @@ static std::string toLower(std::string&& input)
 
 static bool parseCommandType(std::string& input, proto::Command& command)
 {
-    std::string validTypes[6] = {"start", "stop", "restart", "status", "reload", "terminate"};
+    const char* validTypes[] = {"start", "stop", "restart", "status", "reload", "terminate"};
     std::string commandType  = toLower(getToken(input));
 
-    for (size_t i = 0; i < 6; i++) {
+    for (size_t i = 0; i < (sizeof(validTypes) / sizeof(const char*)); i++) {
         if (commandType == validTypes[i]) {
             LOG_DEBUG(commandType + ": Added as command type")
-            switch (i) {
-            case 0:
-                command.set_type(proto::CommandType::START);
-                return true;
-            case 1:
-                command.set_type(proto::CommandType::STOP);
-                return true;
-            case 2:
-                command.set_type(proto::CommandType::RESTART);
-                return true;
-            case 3:
-                command.set_type(proto::CommandType::STATUS);
-                return true;
-            case 4:
-                command.set_type(proto::CommandType::RELOAD);
-                return true;
-            case 5:
-                command.set_type(proto::CommandType::TERMINATE);
-                return true;
-            default:
-                LOG_FATAL("Unreachable: unknown command type")
-                exit(1);
-            }
+            command.set_type(static_cast<proto::CommandType>(i));
+            return true;
         }
     }
     return false;
