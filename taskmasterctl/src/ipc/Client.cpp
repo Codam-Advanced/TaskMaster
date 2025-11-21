@@ -1,9 +1,10 @@
 #include <ipc/include/Address.hpp>
+#include <ipc/include/ProtoWriter.hpp>
+#include <ipc/include/ProtoReader.hpp>
 #include <logger/include/Logger.hpp>
 #include <taskmasterctl/include/ipc/Client.hpp>
 
-#include <sys/socket.h>
-#include <sys/un.h>
+#include <proto/taskmaster.pb.h>
 
 #define SOCKET_PATH "/tmp/taskmasterd.sock"
 
@@ -26,27 +27,44 @@ ipc::Socket connectToDaemon()
 
 void sendCommandToDaemon(ipc::Socket& socket, proto::Command& command)
 {
-    // Setup the serialized message to send to the daemon
-    std::string serializedMessage;
-    if (!command.SerializeToString(&serializedMessage))
-        throw std::runtime_error("Failed to serialize the command");
+    ipc::ProtoWriter<proto::Command> writer;
 
-    // Send the size of the message so the daemon knows how many bytes to expect
-    uint32_t size = htonl(serializedMessage.size());
-    if (send(socket.getFd(), &size, sizeof(size), 0) == -1)
-        throw std::runtime_error("Failed to send the message size");
-    LOG_DEBUG("Successfully sent the message size to the daemon")
+    // Continue writing the proto::Command to the socket till it has successfully
+    // sent over everything to the Daemon.
+    writer.init(command);
+    while (!writer.write(socket))
+        continue ;
 
-    // Send the serialized command
-    if (send(socket.getFd(), serializedMessage.data(), serializedMessage.size(), 0) == -1)
-        throw std::runtime_error("Failed to send the command message");
     LOG_DEBUG("Successfully sent the command to the daemon")
 }
 
+// TODO make nice
 void awaitDaemonResponse(ipc::Socket& socket)
 {
-    (void) socket;
-    // TODO
+    ipc::ProtoReader<proto::CommandResponse> protoReader;
+
+    while (true)
+    {
+        auto res = protoReader.read(socket);
+
+        // Keep reading till we have the full response
+        if (!res.second.has_value())
+            continue ;
+        proto::CommandResponse& response = res.second.value();
+
+        if (response.status() != proto::CommandStatus::OK)
+        {
+            if (response.message().size() != 0)
+                LOG_ERROR(response.message())
+        }
+        if (response.status() == proto::CommandStatus::OK)
+        {
+            if (response.message().size() != 0)
+                std::cout << response.message() << std::endl;
+        }
+
+        return ;
+    }
 }
 
 } // namespace taskmasterctl

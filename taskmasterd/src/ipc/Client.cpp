@@ -46,11 +46,44 @@ void Client::handleRead()
     }
 }
 
+void Client::handleWrite()
+{
+    try
+    {
+        LOG_DEBUG("We be writing boiiiiiiiiii")
+        bool doneWriting = _proto_writer.write(*this);
+        if (doneWriting)
+        {
+            // Stop polling for writes and start polling for reads again
+            EventManager::getInstance().unregisterEvent(*this);
+            EventManager::getInstance().registerEvent(*this, std::bind(&Client::handleRead, this), nullptr);
+            _proto_writer.clear();
+        }
+    }
+    catch(const std::exception& e)
+    {
+        LOG_ERROR("Error writing to client fd: " + std::to_string(_fd) + ": " + e.what())
+        this->close();
+        EventManager::getInstance().unregisterEvent(*this);
+    }
+}
+
 void Client::handleMessage(proto::Command command)
 {
     // Handle the received command
     LOG_INFO("Received command from client fd " + std::to_string(_fd) + ": " +
              command.DebugString());
+
+    // Stop reading new commands, we need to process write the response out first
+    EventManager::getInstance().unregisterEvent(*this);
+
     // TODO: Process the command as needed
+
+    // Get ready to send the command response
+    proto::CommandResponse response;
+    response.set_status(proto::CommandStatus::OK);
+    response.set_message("CommandType: " + std::to_string(static_cast<u32>(command.type())) + " arrived successfully");
+    _proto_writer.init(response);
+    EventManager::getInstance().registerEvent(*this, nullptr, std::bind(&Client::handleWrite, this));
 }
 } // namespace taskmasterd

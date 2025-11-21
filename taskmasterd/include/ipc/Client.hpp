@@ -1,7 +1,8 @@
 #pragma once
 
+#include <ipc/include/ProtoReader.hpp>
+#include <ipc/include/ProtoWriter.hpp>
 #include <ipc/include/Socket.hpp>
-#include <taskmasterd/include/ipc/ProtoReader.hpp>
 #include <utils/include/utils.hpp>
 
 namespace taskmasterd
@@ -18,6 +19,7 @@ public:
     virtual ~Client();
 
     void handleRead();
+    void handleWrite();
 
     /**
      * @brief Handle a complete protobuf Command message.
@@ -36,6 +38,7 @@ public:
     bool isConnected() const { return _fd != -1; }
 
 private:
-    ProtoReader<proto::Command> _proto_reader;
+    ipc::ProtoReader<proto::Command>         _proto_reader;
+    ipc::ProtoWriter<proto::CommandResponse> _proto_writer;
 };
 } // namespace taskmasterd

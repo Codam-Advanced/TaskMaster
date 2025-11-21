@@ -15,3 +15,13 @@ message Command {
     CommandType type = 1;
     repeated string args = 2;
 }
+
+enum CommandStatus {
+    OK = 0;
+    ERROR = 1;
+}
+
+message CommandResponse {
+    CommandStatus status = 1;
+    string message = 2;
+}
