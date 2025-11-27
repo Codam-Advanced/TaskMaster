@@ -26,7 +26,7 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 set(COMPILE_OPTIONS -Wall -Wextra -Werror -Wno-gnu-zero-variadic-macro-arguments -Wno-gcc-compat -pedantic -O3 -march=native -g -DPROGRAM_NAME="${EXECUTABLE_NAME}")
 target_compile_options(${EXECUTABLE_NAME} PRIVATE ${COMPILE_OPTIONS})
 
-target_link_options(${EXECUTABLE_NAME} PRIVATE)
+# target_link_options(${EXECUTABLE_NAME} PRIVATE -fsanitize=address)
 
 # Link to the needed libs
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE logger utils ipc)
