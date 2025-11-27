@@ -50,7 +50,6 @@ void Client::handleWrite()
 {
     try
     {
-        LOG_DEBUG("We be writing boiiiiiiiiii")
         bool doneWriting = _proto_writer.write(*this);
         if (doneWriting)
         {
