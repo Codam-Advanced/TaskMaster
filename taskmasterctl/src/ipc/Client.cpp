@@ -1,6 +1,6 @@
 #include <ipc/include/Address.hpp>
-#include <ipc/include/ProtoWriter.hpp>
 #include <ipc/include/ProtoReader.hpp>
+#include <ipc/include/ProtoWriter.hpp>
 #include <logger/include/Logger.hpp>
 #include <taskmasterctl/include/ipc/Client.hpp>
 
@@ -33,37 +33,35 @@ void sendCommandToDaemon(ipc::Socket& socket, proto::Command& command)
     // sent over everything to the Daemon.
     writer.init(command);
     while (!writer.write(socket))
-        continue ;
+        continue;
 
     LOG_DEBUG("Successfully sent the command to the daemon")
 }
 
-// TODO make nice
+using ResponseReader       = ipc::ProtoReader<proto::CommandResponse>;
+using ResponseReaderReturn = std::pair<isize, std::optional<proto::CommandResponse>>;
 void awaitDaemonResponse(ipc::Socket& socket)
 {
-    ipc::ProtoReader<proto::CommandResponse> protoReader;
+    ResponseReaderReturn res = ResponseReaderReturn(0, std::nullopt);
+    ResponseReader       protoReader;
 
-    while (true)
-    {
-        auto res = protoReader.read(socket);
+    while (!res.second.has_value())
+        res = protoReader.read(socket);
 
-        // Keep reading till we have the full response
-        if (!res.second.has_value())
-            continue ;
-        proto::CommandResponse& response = res.second.value();
+    proto::CommandResponse& response = res.second.value();
 
-        if (response.status() != proto::CommandStatus::OK)
-        {
-            if (response.message().size() != 0)
-                LOG_ERROR(response.message())
-        }
-        if (response.status() == proto::CommandStatus::OK)
-        {
-            if (response.message().size() != 0)
-                std::cout << response.message() << std::endl;
-        }
-
-        return ;
+    switch (response.status()) {
+    case proto::CommandStatus::OK:
+        if (response.message().size() != 0)
+            std::cout << response.message() << std::endl;
+        break;
+    case proto::CommandStatus::ERROR:
+        if (response.message().size() != 0)
+            LOG_ERROR(response.message())
+        break;
+    default:
+        throw std::runtime_error("Received an invalid response status");
+        break;
     }
 }
 
