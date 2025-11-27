@@ -1,7 +1,7 @@
 #include "logger/include/Logger.hpp"
 #include "taskmasterd/include/jobs/JobConfig.hpp"
-#include <taskmasterd/include/jobs/Job.hpp>
 #include <bits/stdc++.h>
+#include <taskmasterd/include/jobs/Job.hpp>
 #include <utils/include/utils.hpp>
 
 namespace taskmasterd
@@ -30,9 +30,13 @@ void Job::start()
 {
     for (i32 i = 0; i < _config.numprocs; i++) {
         std::string proc_name = _config.name + "_" + std::to_string(i);
-        Process &proc = _processes.emplace_back(proc_name, _pgid, std::bind(&Job::onExit, this, std::placeholders::_1, std::placeholders::_2));
 
-        proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()));
+        // We reserve the amount of processes for the vector to avoid then need to move
+        // already started processes
+        _processes.reserve(_config.numprocs);
+        Process&    proc      = _processes.emplace_back(proc_name, _pgid, std::bind(&Job::onExit, this, std::placeholders::_1, std::placeholders::_2));
+
+        proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
         // Set the job's pgid to the first process's pid
         if (_pgid == 0) {
             _pgid = proc.getPid();
@@ -60,7 +64,7 @@ void Job::onExit(Process& proc, i32 status_code)
     proc.addRestart();
 
     if (_config.restart_policy == JobConfig::RestartPolicy::ALWAYS) {
-        proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()));
+        proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
     } else if (_config.restart_policy == JobConfig::RestartPolicy::ON_FAILURE) {
         for (auto& code : _config.exit_codes) {
             if (code == status_code) {
@@ -68,7 +72,7 @@ void Job::onExit(Process& proc, i32 status_code)
                 return;
             }
         }
-        proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()));
+        proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
     }
 }
 

@@ -6,6 +6,7 @@
 
 #include <ipc/include/FileDescriptor.hpp>
 #include <taskmasterd/include/core/Timer.hpp>
+#include <taskmasterd/include/jobs/JobConfig.hpp>
 
 namespace taskmasterd
 {
@@ -42,7 +43,7 @@ public:
      * @param argv The argument list for the executable.
      * @param env The environment variables for the executable.
      */
-    void start(const std::string& path, char* const* argv, char* const* env);
+    void start(const std::string& path, char* const* argv, char* const* env, const JobConfig &config);
 
     /**
      * @brief Gracefully stop the process using SIGTERM.
@@ -77,6 +78,28 @@ public:
     void addRestart() { _restarts++; }
 
 private:
+
+    /**
+     * @brief Method is called once the process has exited
+     * 
+     * this can either be by stopping the job gracefully or if it exits by itself.
+     */
+    void onExit(i32 status);
+
+    /**
+     * @brief Method is called once the process has been killed
+     * 
+     * this happends once a process takes to long to exit gracefully.
+     */
+    void onForcedExit(i32 status);
+
+    /**
+     * @brief Method is called once the start timer has surpassed
+     * 
+     * this will switch a program starting state into a running state
+     */
+    void onStartTime();
+
     std::string _name;
     pid_t       _pid;
     pid_t       _pgid;
