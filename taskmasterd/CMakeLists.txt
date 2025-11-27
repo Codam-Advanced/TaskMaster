@@ -23,10 +23,10 @@ target_link_libraries(taskmasterd PUBLIC yaml-cpp)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 # Add compile options
-set(COMPILE_OPTIONS -Wall -Wextra -Werror -Wno-gnu-zero-variadic-macro-arguments -fsanitize=address -Wno-gcc-compat -pedantic -O3 -march=native -g -DPROGRAM_NAME="${EXECUTABLE_NAME}")
+set(COMPILE_OPTIONS -Wall -Wextra -Werror -Wno-gnu-zero-variadic-macro-arguments -Wno-gcc-compat -pedantic -O3 -march=native -g -DPROGRAM_NAME="${EXECUTABLE_NAME}")
 target_compile_options(${EXECUTABLE_NAME} PRIVATE ${COMPILE_OPTIONS})
 
-target_link_options(${EXECUTABLE_NAME} PRIVATE -fsanitize=address)
+target_link_options(${EXECUTABLE_NAME} PRIVATE)
 
 # Link to the needed libs
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE logger utils ipc)
