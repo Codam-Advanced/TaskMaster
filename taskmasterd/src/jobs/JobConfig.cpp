@@ -65,8 +65,6 @@ void parseAutoStart(JobConfig* object, const YAML::Node& config)
 
 void parseAutoRestart(JobConfig* object, const YAML::Node& config)
 {
-    static const std::unordered_map<std::string, JobConfig::RestartPolicy> policies = {
-        {"true", JobConfig::RestartPolicy::ALWAYS}, {"unexpected", JobConfig::RestartPolicy::ON_FAILURE}, {"false", JobConfig::RestartPolicy::NEVER}};
     if (!config.IsDefined()) {
         // if not present default is (unexpected)
         object->restart_policy = JobConfig::RestartPolicy::ON_FAILURE;
@@ -74,7 +72,7 @@ void parseAutoRestart(JobConfig* object, const YAML::Node& config)
     }
 
     // we dont care that this can throw since this will be called in the constructor anyways.
-    object->restart_policy = policies.at(config.as<std::string>());
+    object->restart_policy = JobConfig::policies.at(config.as<std::string>());
 }
 
 void parseExitCodes(JobConfig* object, const YAML::Node& config)
@@ -118,22 +116,12 @@ void parseStartTime(JobConfig* object, const YAML::Node& config)
 
 void parseStopSignal(JobConfig* object, const YAML::Node& config)
 {
-    static const std::unordered_map<std::string, JobConfig::Signals> signals = {
-        {"HUP", JobConfig::Signals::HUP},
-        {"INT", JobConfig::Signals::INT},
-        {"TERM", JobConfig::Signals::TERM},
-        {"QUIT", JobConfig::Signals::QUIT},
-        {"KILL", JobConfig::Signals::KILL},
-        {"USR1", JobConfig::Signals::USR1},
-        {"USR2", JobConfig::Signals::USR2},
-    };
-
     if (!config.IsDefined()) {
         // is not defined default will be set to TERM like supervisor
-        object->signal = JobConfig::Signals::TERM;
+        object->stop_signal = Signals::TERM;
         return;
     }
-    object->signal = signals.at(config.as<std::string>());
+    object->stop_signal = JobConfig::signals.at(config.as<std::string>());
 }
 
 void parseStopTime(JobConfig* object, const YAML::Node& config)

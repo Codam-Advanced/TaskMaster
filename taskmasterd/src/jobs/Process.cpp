@@ -1,4 +1,6 @@
 #include "taskmasterd/include/jobs/JobConfig.hpp"
+#include "taskmasterd/include/jobs/Signal.hpp"
+#include <cmath>
 #include <cstdlib>
 #include <taskmasterd/include/jobs/Process.hpp>
 
@@ -32,7 +34,7 @@ Process::Process(Process&& other) noexcept
     , _state(other._state)
     , _restarts(other.getRestarts())
     , _onExit(std::move(other._onExit))
-    , _killTimer(std::move(other._killTimer))
+    , _timer(std::move(other._timer))
 {
     EventManager::getInstance().updateEvent(*this, std::bind(&Process::onStateChange, this), nullptr);
 }
@@ -40,7 +42,7 @@ Process::Process(Process&& other) noexcept
 void Process::start(const std::string& path, char* const* argv, char* const* env, const JobConfig& config)
 {
     // set a timeout that a process needs to stay alive to be a in a valid running state.
-    _killTimer.reset(new Timer(config.start_time, std::bind(&Process::onStartTime, this)));
+    _timer.reset(new Timer(config.start_time, std::bind(&Process::onStartTime, this)));
 
     _pid = fork();
     if (_pid == -1) {
@@ -63,7 +65,7 @@ void Process::start(const std::string& path, char* const* argv, char* const* env
 
     // Parent Process
     _state = State::STARTING;
-    _killTimer->start();
+    _timer->start();
 
     LOG_DEBUG("Started process " + _name + " with PID " + std::to_string(_pid));
     if ((_fd = pidfd_open(_pid, 0)) == -1)
@@ -72,23 +74,33 @@ void Process::start(const std::string& path, char* const* argv, char* const* env
     EventManager::getInstance().registerEvent(*this, std::bind(&Process::onStateChange, this), nullptr);
 }
 
-void Process::stop(i32 timeout)
+void Process::stop(i32 timeout, Signals stop_signal)
 {
-    if (pidfd_send_signal(_fd, SIGTERM, NULL, 0) == -1)
-        throw std::runtime_error("Failed to send SIGTERM to process: " + _name);
+    // get a shorter reference variable
+    const JobConfig::SignalMap& sig_map = JobConfig::signals;
 
-    LOG_DEBUG("Sent SIGTERM to process: " + _name);
+    // find the key from the value in the signal map
+    auto it = std::find_if(sig_map.begin(), sig_map.end(),
+    [stop_signal](const auto& pair) {
+        return pair.second == stop_signal;
+    });
+
+    // send signal to pid fd with given stopsignal
+    if (pidfd_send_signal(_fd, static_cast<i32>(stop_signal), NULL, 0) == -1)
+        throw std::runtime_error("Failed to send " + it->first + " to process: " + _name);
+
+    LOG_DEBUG("Sent " + it->first + " to process: " + _name);
 
     _state = State::STOPPING;
 
     // Set up a timer to send SIGKILL if the process does not stop in time
-    _killTimer.reset(new Timer(timeout, [this]() {
+    _timer.reset(new Timer(timeout, [this]() {
         if (_state == State::STOPPING) {
             LOG_DEBUG("Process " + _name + " did not stop in time, sending SIGKILL");
             this->kill();
         }
     }));
-    _killTimer->start();
+    _timer->start();
 }
 
 void Process::kill()
@@ -108,7 +120,7 @@ void Process::onStateChange()
     if (result == -1)
         throw std::runtime_error("waitpid failed for process '" + _name + "': " + strerror(errno));
 
-    _killTimer.reset();
+    _timer.reset();
 
     EventManager::getInstance().unregisterEvent(*this);
 

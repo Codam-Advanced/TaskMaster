@@ -1,5 +1,6 @@
 #pragma once
 
+#include "taskmasterd/include/jobs/Signal.hpp"
 #include <memory>
 #include <string>
 #include <unistd.h>
@@ -43,15 +44,16 @@ public:
      * @param argv The argument list for the executable.
      * @param env The environment variables for the executable.
      */
-    void start(const std::string& path, char* const* argv, char* const* env, const JobConfig &config);
+    void start(const std::string& path, char* const* argv, char* const* env, const JobConfig& config);
 
     /**
      * @brief Gracefully stop the process using SIGTERM.
      *
      * @param timeout The time in seconds to wait for the process to terminate gracefully
      *                before forcefully killing it. Default is 5 seconds.
+     * @param stop_signal The signal to send to the program to call a stop
      */
-    void stop(i32 timeout = 5);
+    void stop(i32 timeout = 5, Signals stop_signal = Signals::TERM);
 
     /**
      * @brief Forcefully kill the process using SIGKILL.
@@ -78,24 +80,23 @@ public:
     void addRestart() { _restarts++; }
 
 private:
-
     /**
      * @brief Method is called once the process has exited
-     * 
+     *
      * this can either be by stopping the job gracefully or if it exits by itself.
      */
     void onExit(i32 status);
 
     /**
      * @brief Method is called once the process has been killed
-     * 
+     *
      * this happends once a process takes to long to exit gracefully.
      */
     void onForcedExit(i32 status);
 
     /**
      * @brief Method is called once the start timer has surpassed
-     * 
+     *
      * this will switch a program starting state into a running state
      */
     void onStartTime();
@@ -106,7 +107,7 @@ private:
     State       _state;
     i32         _restarts;
 
-    std::function<void(Process&, i32)>   _onExit;
-    std::unique_ptr<Timer> _killTimer;
+    std::function<void(Process&, i32)> _onExit;
+    std::unique_ptr<Timer>             _timer;
 };
 } // namespace taskmasterd

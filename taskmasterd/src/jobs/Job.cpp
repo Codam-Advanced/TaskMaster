@@ -47,7 +47,7 @@ void Job::start()
 void Job::stop()
 {
     for (auto& proc : _processes) {
-        proc.stop(_config.stop_time);
+        proc.stop(_config.stop_time, _config.stop_signal);
     }
 }
 
