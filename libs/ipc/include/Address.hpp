@@ -7,7 +7,7 @@
 
 #include <utils/include/utils.hpp>
 
-namespace taskmasterd
+namespace ipc
 {
 class Address
 {

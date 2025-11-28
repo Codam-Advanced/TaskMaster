@@ -7,7 +7,7 @@
 
 namespace taskmasterd
 {
-class EventManager : public FileDescriptor
+class EventManager : public ipc::FileDescriptor
 {
 public:
     using EventCallback = std::function<void()>;
@@ -41,7 +41,7 @@ public:
      * @brief Unregister an event handler for a file descriptor.
      * @param handler The FileDescriptor to stop monitoring.
      */
-    void unregisterEvent(const FileDescriptor& handler);
+    void unregisterEvent(const ipc::FileDescriptor& handler);
 
     /**
      * @brief Wait for events and dispatch them to the appropriate handlers.

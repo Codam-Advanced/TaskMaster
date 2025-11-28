@@ -4,7 +4,7 @@
 #include <ipc/include/FileDescriptor.hpp>
 #include <utils/include/utils.hpp>
 
-namespace taskmasterd
+namespace ipc
 {
 class Socket : public FileDescriptor
 {
@@ -44,6 +44,13 @@ public:
      * @param backlog The maximum length of the queue of pending connections.
      */
     void listen(i32 backlog = 5);
+
+    /**
+     * @brief Connects the socket to the given address.
+     * 
+     * @param address The address to connect the socket to. 
+     */
+    void connect(const Address& address);
 
     /**
      * @brief Accept a new connection.

@@ -10,7 +10,7 @@
 
 namespace taskmasterd
 {
-class Process : public FileDescriptor
+class Process : public ipc::FileDescriptor
 {
 public:
     enum class State

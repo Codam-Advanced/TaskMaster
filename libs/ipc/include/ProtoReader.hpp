@@ -7,11 +7,10 @@
 #include <vector>
 
 #include <ipc/include/FileDescriptor.hpp>
-#include <logger/include/Logger.hpp>
 #include <proto/taskmaster.pb.h>
 #include <utils/include/utils.hpp>
 
-namespace taskmasterd
+namespace ipc
 {
 template <typename T> class ProtoReader
 {
@@ -28,7 +27,7 @@ public:
      * @return A pair containing the number of bytes read and an optional parsed message or
      * std::nullopt if a complete message has not yet been received.
      */
-    std::pair<isize, std::optional<T>> read(const FileDescriptor& fd)
+    std::pair<isize, std::optional<T>> read(const ipc::FileDescriptor& fd)
     {
         const usize BUFFER_SIZE = 4096;
 
@@ -69,4 +68,4 @@ private:
     std::vector<char>    _buffer;
     std::optional<usize> _message_size;
 };
-} // namespace taskmasterd
+} // namespace ipc

@@ -8,9 +8,20 @@ enum CommandType {
     RESTART = 2;
     STATUS = 3;
     RELOAD = 4;
+    TERMINATE = 5;
 }
 
 message Command {
     CommandType type = 1;
     repeated string args = 2;
+}
+
+enum CommandStatus {
+    OK = 0;
+    ERROR = 1;
+}
+
+message CommandResponse {
+    CommandStatus status = 1;
+    string message = 2;
 }

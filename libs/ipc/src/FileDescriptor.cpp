@@ -1,6 +1,6 @@
 #include <ipc/include/FileDescriptor.hpp>
 
-namespace taskmasterd
+namespace ipc
 {
 FileDescriptor::FileDescriptor() : _fd(-1) {}
 
