@@ -21,7 +21,7 @@ int main(int argc, char** argv)
     LOG_INFO("Starting " PROGRAM_NAME);
 
     try {
-        JobManager manager("../../tastconfig.yaml");
+        JobManager manager("./../tastconfig.yaml");
 
         manager.start();
 
