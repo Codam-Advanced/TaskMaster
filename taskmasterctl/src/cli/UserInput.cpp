@@ -1,5 +1,5 @@
 #include <logger/include/Logger.hpp>
-#include <taskmasterctl/include/cli/userInput.hpp>
+#include <taskmasterctl/include/cli/UserInput.hpp>
 #include <utils/include/utils.hpp>
 
 #include <iostream>

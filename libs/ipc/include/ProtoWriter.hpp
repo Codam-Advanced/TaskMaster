@@ -30,8 +30,7 @@ public:
     void init(T& toWrite)
     {
         if (_serializedMessage.size() > 0)
-            throw std::runtime_error(
-                "Already initialized this protoWriter, finish writing the message or reset");
+            throw std::runtime_error("Already initialized this protoWriter, finish writing the message or reset");
 
         if (!toWrite.SerializeToString(&_serializedMessage))
             throw std::runtime_error("Failed to serialize the message");
@@ -56,8 +55,7 @@ public:
             // Write the size of the message to the file descriptor.
             u32 size = htonl(_serializedMessage.size());
             if (send(fd.getFd(), &size, sizeof(size), MSG_NOSIGNAL) == -1)
-                throw std::runtime_error(
-                    "Failed to send the message size, is the socket still open?");
+                throw std::runtime_error("Failed to send the message size, is the socket still open?");
             _sizeWritten = true;
             LOG_DEBUG("Successfully sent the message size")
             return false;
@@ -69,12 +67,10 @@ public:
 
             // Write the actual message to the file descriptor.
             const char* data      = _serializedMessage.data() + _bytesWritten;
-            isize       writeSize = std::min(_serializedMessage.size() - _bytesWritten,
-                                       static_cast<size_t>(PROTOWRITER_MAX_WRITE_SIZE));
+            isize       writeSize = std::min(_serializedMessage.size() - _bytesWritten, static_cast<size_t>(PROTOWRITER_MAX_WRITE_SIZE));
             isize       bytesSent = send(fd.getFd(), data, writeSize, MSG_NOSIGNAL);
             if (bytesSent == -1)
-                throw std::runtime_error(
-                    "Failed to send the command message, is the socket still open?");
+                throw std::runtime_error("Failed to send the command message, is the socket still open?");
             _bytesWritten += bytesSent;
 
             if (static_cast<size_t>(_bytesWritten) == _serializedMessage.size()) {

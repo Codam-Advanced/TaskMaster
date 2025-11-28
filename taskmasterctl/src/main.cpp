@@ -1,6 +1,6 @@
 #include <iostream>
 #include <logger/include/Logger.hpp>
-#include <taskmasterctl/include/cli/userInput.hpp>
+#include <taskmasterctl/include/cli/UserInput.hpp>
 #include <taskmasterctl/include/ipc/Client.hpp>
 
 #include <ipc/include/FileDescriptor.hpp>
