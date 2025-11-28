@@ -6,7 +6,9 @@
 
 namespace ipc
 {
-Socket::Socket(Type type) : FileDescriptor(-1), _type(type)
+Socket::Socket(Type type)
+    : FileDescriptor(-1)
+    , _type(type)
 {
     switch (type) {
     case Type::TCP:
@@ -27,17 +29,22 @@ Socket::Socket(Type type) : FileDescriptor(-1), _type(type)
     }
 }
 
-Socket::Socket(Type type, i32 fd) : FileDescriptor(fd), _type(type) {}
+Socket::Socket(Type type, i32 fd)
+    : FileDescriptor(fd)
+    , _type(type)
+{
+}
 
 void Socket::bind(const Address& address)
 {
     const i32 reuse = 1;
     // Enable address reuse
     if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(i32)) != 0) {
-        throw std::runtime_error("Failed to set SO_REUSEADDR option: " +
-                                 std::string(strerror(errno)));
+        throw std::runtime_error("Failed to set SO_REUSEADDR option: " + std::string(strerror(errno)));
     }
 
+    if (_type == Type::UNIX)
+        unlink(address.getAddress().c_str()); // For UNIX sockets, remove existing file
     if (::bind(_fd, &address.getSockAddr(), address.getSockAddrLen()) == -1) {
         throw std::runtime_error("Failed to bind socket: " + std::string(strerror(errno)));
     }

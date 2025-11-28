@@ -5,7 +5,9 @@
 
 namespace ipc
 {
-Address::Address(Type type, const std::string& address, u16 port) : _type(type)
+Address::Address(Type type, const std::string& address, u16 port)
+    : _type(type)
+    , _address(address)
 {
     _addr.ss_family = static_cast<sa_family_t>(type);
 
@@ -49,4 +51,4 @@ const sockaddr& Address::getSockAddr() const
 {
     return *reinterpret_cast<const struct sockaddr*>(&_addr);
 }
-} // namespace taskmasterd
+} // namespace ipc

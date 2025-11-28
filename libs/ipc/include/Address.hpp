@@ -29,6 +29,13 @@ public:
     Address(Type type, const std::string& address, u16 port = 0);
 
     /**
+     * @brief Get the address string.
+     *
+     * @return const std::string& The address string.
+     */
+    const std::string& getAddress() const { return _address; }
+
+    /**
      * @brief Get the underlying sockaddr structure.
      *
      * @return const sockaddr& The sockaddr structure representing the address.
@@ -49,7 +56,8 @@ public:
 private:
     Type _type;
 
+    std::string      _address;
     sockaddr_storage _addr;
     socklen_t        _addrlen;
 };
-} // namespace taskmasterd
+} // namespace ipc
