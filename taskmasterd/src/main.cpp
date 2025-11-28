@@ -39,7 +39,7 @@ int main(int argc, char** argv)
 
         manager.start();
 
-        Server server(ipc::Socket::Type::UNIX, ipc::Address::UNIX("/tmp/taskmasterd.sock"));
+        // Server server(ipc::Socket::Type::UNIX, ipc::Address::UNIX("/tmp/taskmasterd.sock"));
 
         while (g_running) {
             EventManager::getInstance().handleEvents();

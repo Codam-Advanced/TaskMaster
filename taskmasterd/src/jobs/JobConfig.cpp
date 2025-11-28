@@ -1,5 +1,8 @@
+#include "logger/include/Logger.hpp"
 #include <functional>
+#include <optional>
 #include <taskmasterd/include/jobs/JobConfig.hpp>
+#include <filesystem>
 
 namespace taskmasterd
 {
@@ -138,12 +141,23 @@ void parseStopTime(JobConfig* object, const YAML::Node& config)
 
 void parseSTDOUT(JobConfig* object, const YAML::Node& config)
 {
+
+    
     if (!config.IsDefined()) {
         // If not present default is no redirection
         object->out = std::nullopt;
         return;
     }
-    object->out = config.as<std::string>();
+
+    std::filesystem::path path = config.as<std::string>();
+    std::filesystem::path dir = path.parent_path();
+
+    if(!std::filesystem::exists(dir)) {
+        LOG_WARNING("Directory of Path: " + path.string() + "Doesn't exists! setting to null..");
+        object->out = std::nullopt;
+    } else {
+        object->out = config.as<std::string>();
+    }
 }
 
 void parseSTDERR(JobConfig* object, const YAML::Node& config)
@@ -153,7 +167,15 @@ void parseSTDERR(JobConfig* object, const YAML::Node& config)
         object->err = std::nullopt;
         return;
     }
-    object->err = config.as<std::string>();
+    std::filesystem::path path = config.as<std::string>();
+    std::filesystem::path dir = path.parent_path();
+
+    if(!std::filesystem::exists(dir)) {
+        LOG_WARNING("Option STDERR: Directory of Path: " + path.string() + "Doesn't exists! setting to null..");
+        object->err = std::nullopt;
+    } else {
+        object->err = config.as<std::string>();
+    }
 }
 
 void parseENV(JobConfig* object, const YAML::Node& config)
