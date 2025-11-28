@@ -11,10 +11,10 @@ jobs:
       - 2
     startretries: 3
     starttime: 5
-    stopsignal: TERM
+    stopsignal: QUIT
     stoptime: 10
     stdout: /tmp/nginx.stdout
-    stderr: /tmp/nginx.stderr`
+    stderr: /tmp/nginx.stderr
     env:
       STARTED_BY: taskmaster
       ANSWER: 42
@@ -29,7 +29,7 @@ jobs:
     exitcodes: 0
     startretries: 3
     starttime: 5
-    stopsignal: USR1
+    stopsignal: QUIT
     stoptime: 10
     stdout: /tmp/vgsworker.stdout
     stderr: /tmp/vgsworker.stderr

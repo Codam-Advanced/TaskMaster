@@ -1,13 +1,13 @@
 #pragma once
 
 #include <optional>
-#include <signal.h>
 #include <string>
 #include <sys/stat.h>
 #include <unordered_map>
 #include <vector>
 
 #include <logger/include/Logger.hpp>
+#include <taskmasterd/include/jobs/Signal.hpp>
 #include <utils/include/utils.hpp>
 #include <yaml-cpp/yaml.h>
 
@@ -17,24 +17,16 @@ struct JobConfig
 {
     static std::unordered_map<std::string, JobConfig> getJobConfigs(const std::string& filename);
 
-    using EnvMap = std::unordered_map<std::string, std::string>;
-
     enum class RestartPolicy
     {
         NEVER,
         ALWAYS,
         ON_FAILURE
     };
-    enum class Signals : int
-    {
-        INT  = SIGINT,
-        TERM = SIGTERM,
-        HUP  = SIGHUP,
-        QUIT = SIGQUIT,
-        KILL = SIGKILL,
-        USR1 = SIGUSR1,
-        USR2 = SIGUSR2
-    };
+
+    using EnvMap    = std::unordered_map<std::string, std::string>;
+    using SignalMap = std::unordered_map<std::string, Signals>;
+    using PolicyMap = std::unordered_map<std::string, RestartPolicy>;
 
     std::string name;
     std::string cmd;
@@ -50,12 +42,24 @@ struct JobConfig
     i32 start_time;
     i32 stop_time;
 
-    Signals signal;
+    Signals stop_signal;
 
     std::optional<std::string> out;
     std::optional<std::string> err;
 
     EnvMap env;
+
+    inline static const SignalMap signals = {
+        {"HUP", Signals::HUP},
+        {"INT", Signals::INT},
+        {"TERM", Signals::TERM},
+        {"QUIT", Signals::QUIT},
+        {"KILL", Signals::KILL},
+        {"USR1", Signals::USR1},
+        {"USR2", Signals::USR2},
+    };
+
+    inline static const PolicyMap policies = {{"true", RestartPolicy::ALWAYS}, {"unexpected", RestartPolicy::ON_FAILURE}, {"false", RestartPolicy::NEVER}};
 
 private:
     // You are not supposed to create your own JobConfig objects, use the static method

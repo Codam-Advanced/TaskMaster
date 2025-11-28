@@ -4,10 +4,16 @@
 
 namespace taskmasterd
 {
-enum class Signal
+enum class Signals : int
 {
-    INTERRUPT = SIGINT,
-    TERMINATE = SIGTERM,
-    KILL      = SIGKILL,
+    INT  = SIGINT,
+    TERM = SIGTERM,
+    HUP  = SIGHUP,
+    QUIT = SIGQUIT,
+    KILL = SIGKILL,
+    USR1 = SIGUSR1,
+    USR2 = SIGUSR2
 };
+
+
 } // namespace taskmasterd
