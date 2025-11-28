@@ -1,6 +1,7 @@
 #include "taskmasterd/include/jobs/JobConfig.hpp"
 #include "taskmasterd/include/jobs/Signal.hpp"
 #include <cmath>
+#include <cstdio>
 #include <cstdlib>
 #include <taskmasterd/include/jobs/Process.hpp>
 
@@ -9,6 +10,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <logger/include/Logger.hpp>
 #include <taskmasterd/include/core/EventManager.hpp>
@@ -52,6 +54,21 @@ void Process::start(const std::string& path, char* const* argv, char* const* env
     if (_pid == 0) {
         // Child process
         setpgid(0, _pgid); // If pgid is 0, pid of the child process is used as pgid
+        
+        if (!config.err->empty()){
+            LOG_DEBUG("Dupping stderr to path: " + config.err.value())
+            dupPath(STDERR_FILENO, config.err.value());
+        }
+        if (!config.out->empty()){
+            LOG_DEBUG("Dupping stdout to path: " + config.out.value())
+            dupPath(STDOUT_FILENO, config.out.value());
+        }
+
+        if (chdir(config.working_dir.c_str()) != 0) {
+            throw std::logic_error("Working Dir Error: " + std::string(strerror(errno)));
+        }
+
+        umask(config.umask);
 
         LOG_DEBUG("Executing process " + _name + " with command: " + path);
 
@@ -164,6 +181,13 @@ void Process::onStartTime()
 {
     LOG_INFO("Process succefully surpasses the start time" + _name);
     _state = State::RUNNING;
+}
+
+
+void Process::dupPath(i32 std_input, const std::string& path)
+{
+    int fd = open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    dup2(std_input, fd);
 }
 
 } // namespace taskmasterd

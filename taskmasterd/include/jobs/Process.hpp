@@ -101,6 +101,13 @@ private:
      */
     void onStartTime();
 
+    /**
+     * @brief Helper method to dup a path instead of a fd
+     *
+     * the reason is to safe line spaces 
+     */
+    void dupPath(i32 std_input, const std::string& path);
+
     std::string _name;
     pid_t       _pid;
     pid_t       _pgid;
