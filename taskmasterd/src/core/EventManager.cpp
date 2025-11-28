@@ -61,7 +61,11 @@ void EventManager::handleEvents()
 
     i32 num_events = epoll_wait(_fd, events, MAX_EVENTS, -1);
     if (num_events == -1) {
-        throw std::runtime_error("epoll_wait failed");
+        if (errno == EINTR)
+            // Interrupted by signal, just return
+            return;
+
+        throw std::runtime_error("epoll_wait failed: " + std::string(strerror(errno)));
     }
 
     for (i32 i = 0; i < num_events; i++) {

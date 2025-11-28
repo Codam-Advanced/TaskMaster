@@ -47,8 +47,8 @@ public:
 
     /**
      * @brief Connects the socket to the given address.
-     * 
-     * @param address The address to connect the socket to. 
+     *
+     * @param address The address to connect the socket to.
      */
     void connect(const Address& address);
 
@@ -62,4 +62,4 @@ public:
 protected:
     Type _type;
 };
-} // namespace taskmasterd
+} // namespace ipc
