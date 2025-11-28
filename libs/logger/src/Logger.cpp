@@ -1,11 +1,12 @@
-#include <logger/include/Logger.hpp>
 #include <iostream>
+#include <logger/include/Logger.hpp>
 #include <syslog.h>
 
 namespace Logger
 {
 LogInterface::LogInterface(const char* processName, LogLevel logLevel, bool enableLoggingStdout)
-    : _logLevel(logLevel), _enableLoggingStdout(enableLoggingStdout)
+    : _logLevel(logLevel)
+    , _enableLoggingStdout(enableLoggingStdout)
 {
     openlog(processName, LOG_NOWAIT, LOG_NOWAIT);
 }
@@ -33,8 +34,7 @@ void LogInterface::Initialize(const char* processName, LogLevel logLevel, bool e
         throw std::runtime_error("Logger is already initialized.");
     }
 
-    logger =
-        std::unique_ptr<LogInterface>(new LogInterface(processName, logLevel, enableLoggingStdout));
+    logger = std::unique_ptr<LogInterface>(new LogInterface(processName, logLevel, enableLoggingStdout));
 }
 
 bool LogInterface::CanLogLogWithSetLogLevel(LogType logType)
@@ -102,8 +102,7 @@ void LogInterface::Log(const std::string& logMessage, const LogType logType)
             break;
         }
     } catch (const std::exception& e) {
-        std::cerr << GetLogColor(LogType::Error) << "Error using syslog: " << e.what()
-                  << COLOR_RESET "\n";
+        std::cerr << GetLogColor(LogType::Error) << "Error using syslog: " << e.what() << COLOR_RESET "\n";
     }
 }
 

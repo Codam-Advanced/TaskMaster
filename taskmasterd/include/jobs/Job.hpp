@@ -17,9 +17,7 @@ public:
      * @param config The job configuration.
      */
     Job(const JobConfig& config);
-    Job(Job&&);
     virtual ~Job() = default;
-
 
     /**
      * @brief Start all processes defined in the job configuration.
@@ -37,14 +35,21 @@ public:
     void stop();
 
     /**
+     * @brief function that is called by a process when it exited
+     * 
+     * This method will handle any exit removing or auto restarting a new process
+     */
+    void onExit(Process&, i32 status_code);
+
+    /**
      * @brief Get the job configuration.
      *
      * @return The job configuration.
      */
     const JobConfig& getConfig() const { return _config; }
-    
+
 private:
-    JobConfig _config;
+    JobConfig                _config;
     std::vector<std::string> _args;
     std::vector<const char*> _argv;
     std::vector<const char*> _env;

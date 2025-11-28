@@ -7,7 +7,8 @@
 
 namespace taskmasterd
 {
-Server::Server(ipc::Socket::Type type, const ipc::Address& address, i32 backlog) : ipc::Socket(type)
+Server::Server(Socket::Type type, const ipc::Address& address, i32 backlog)
+    : Socket(type)
 {
     this->bind(address);
     this->listen(backlog);
@@ -30,11 +31,6 @@ void Server::onAccept()
     _clients.emplace_back(std::make_unique<Client>(std::move(client)));
 
     // Clean up disconnected clients
-    _clients.erase(std::remove_if(_clients.begin(),
-                                  _clients.end(),
-                                  [](const std::unique_ptr<Client>& client) {
-                                      return client->isConnected() == false;
-                                  }),
-                   _clients.end());
+    _clients.erase(std::remove_if(_clients.begin(), _clients.end(), [](const std::unique_ptr<Client>& client) { return client->isConnected() == false; }), _clients.end());
 }
 } // namespace taskmasterd

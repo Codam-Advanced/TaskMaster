@@ -1,7 +1,6 @@
 #include "taskmasterd/include/jobs/JobManager.hpp"
 #include <logger/include/Logger.hpp>
 
-#include <iostream>
 #include <taskmasterd/include/core/EventManager.hpp>
 #include <taskmasterd/include/ipc/Server.hpp>
 #include <taskmasterd/include/jobs/Job.hpp>

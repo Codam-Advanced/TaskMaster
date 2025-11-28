@@ -27,9 +27,7 @@ public:
      * @param read_callback The callback function to invoke on read events.
      * @param write_callback The callback function to invoke on write events.
      */
-    void registerEvent(const ipc::FileDescriptor& handler,
-                       EventCallback         read_callback  = nullptr,
-                       EventCallback         write_callback = nullptr);
+    void registerEvent(const FileDescriptor& handler, EventCallback read_callback = nullptr, EventCallback write_callback = nullptr);
 
     /**
      * @brief Update the event handler for a file descriptor.
@@ -37,9 +35,7 @@ public:
      * @param read_callback The new callback function for read events.
      * @param write_callback The new callback function for write events.
      */
-    void updateEvent(const ipc::FileDescriptor& handler,
-                     EventCallback         read_callback,
-                     EventCallback         write_callback);
+    void updateEvent(const FileDescriptor& handler, EventCallback read_callback, EventCallback write_callback);
 
     /**
      * @brief Unregister an event handler for a file descriptor.
@@ -67,10 +63,7 @@ public:
 private:
     using EventCallbackMap = std::unordered_map<i32, EventCallback>;
 
-    void updateEventInternal(const ipc::FileDescriptor& handler,
-                             i32                   operation,
-                             EventCallback         read_callback,
-                             EventCallback         write_callback);
+    void updateEventInternal(const FileDescriptor& handler, i32 operation, EventCallback read_callback, EventCallback write_callback);
 
     const static i32 MAX_EVENTS = 1024;
 

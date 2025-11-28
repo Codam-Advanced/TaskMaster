@@ -6,6 +6,7 @@
 
 #include <ipc/include/FileDescriptor.hpp>
 #include <taskmasterd/include/core/Timer.hpp>
+#include <taskmasterd/include/jobs/JobConfig.hpp>
 
 namespace taskmasterd
 {
@@ -31,7 +32,7 @@ public:
      * @param name The name of the process.
      * @param pgid The process group ID. If 0, the child's PID will be used as PGID.
      */
-    Process(const std::string& name, pid_t pgid);
+    Process(const std::string& name, pid_t pgid, std::function<void(Process&, i32)> callback);
     Process(Process&&) noexcept;
     virtual ~Process() = default;
 
@@ -42,7 +43,7 @@ public:
      * @param argv The argument list for the executable.
      * @param env The environment variables for the executable.
      */
-    void start(const std::string& path, char* const* argv, char* const* env);
+    void start(const std::string& path, char* const* argv, char* const* env, const JobConfig &config);
 
     /**
      * @brief Gracefully stop the process using SIGTERM.
@@ -68,12 +69,44 @@ public:
 
     pid_t getPid() const { return _pid; }
 
+    State getState() const { return _state; }
+
+    i32 getRestarts() const { return _restarts; }
+
+    const std::string& getName() const { return _name; }
+
+    void addRestart() { _restarts++; }
+
 private:
+
+    /**
+     * @brief Method is called once the process has exited
+     * 
+     * this can either be by stopping the job gracefully or if it exits by itself.
+     */
+    void onExit(i32 status);
+
+    /**
+     * @brief Method is called once the process has been killed
+     * 
+     * this happends once a process takes to long to exit gracefully.
+     */
+    void onForcedExit(i32 status);
+
+    /**
+     * @brief Method is called once the start timer has surpassed
+     * 
+     * this will switch a program starting state into a running state
+     */
+    void onStartTime();
+
     std::string _name;
     pid_t       _pid;
     pid_t       _pgid;
     State       _state;
+    i32         _restarts;
 
+    std::function<void(Process&, i32)>   _onExit;
     std::unique_ptr<Timer> _killTimer;
 };
 } // namespace taskmasterd

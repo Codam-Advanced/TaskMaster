@@ -70,8 +70,7 @@ void Client::handleWrite()
 void Client::handleMessage(proto::Command command)
 {
     // Handle the received command
-    LOG_INFO("Received command from client fd " + std::to_string(_fd) + ": " +
-             command.DebugString());
+    LOG_INFO("Received command from client fd " + std::to_string(_fd) + ": " + command.DebugString());
 
     // Stop reading new commands, we need to process write the response out first
     EventManager::getInstance().unregisterEvent(*this);

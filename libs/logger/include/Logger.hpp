@@ -1,11 +1,7 @@
 #pragma once
 
-#include <filesystem>
-#include <fstream>
 #include <memory>
-#include <optional>
 #include <string>
-#include <string_view>
 
 #define COLOR_RESET   "\033[0m"
 #define COLOR_FATAL   "\033[38;5;208m"
@@ -110,13 +106,8 @@ public:
 
 } /* namespace Logger */
 
-#define LOG_ERROR(logMessage) \
-    Logger::LogInterface::GetInstance()->Log(logMessage, Logger::LogType::Error);
-#define LOG_FATAL(logMessage) \
-    Logger::LogInterface::GetInstance()->Log(logMessage, Logger::LogType::Fatal);
-#define LOG_WARNING(logMessage) \
-    Logger::LogInterface::GetInstance()->Log(logMessage, Logger::LogType::Warning);
-#define LOG_INFO(logMessage) \
-    Logger::LogInterface::GetInstance()->Log(logMessage, Logger::LogType::Info);
-#define LOG_DEBUG(logMessage) \
-    Logger::LogInterface::GetInstance()->Log(logMessage, Logger::LogType::Debug);
+#define LOG_ERROR(logMessage)   Logger::LogInterface::GetInstance()->Log(logMessage, Logger::LogType::Error);
+#define LOG_FATAL(logMessage)   Logger::LogInterface::GetInstance()->Log(logMessage, Logger::LogType::Fatal);
+#define LOG_WARNING(logMessage) Logger::LogInterface::GetInstance()->Log(logMessage, Logger::LogType::Warning);
+#define LOG_INFO(logMessage)    Logger::LogInterface::GetInstance()->Log(logMessage, Logger::LogType::Info);
+#define LOG_DEBUG(logMessage)   Logger::LogInterface::GetInstance()->Log(logMessage, Logger::LogType::Debug);

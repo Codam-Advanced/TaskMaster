@@ -1,3 +1,4 @@
+#include <string>
 #include <taskmasterd/include/core/Timer.hpp>
 
 #include <stdexcept>
@@ -10,7 +11,9 @@
 namespace taskmasterd
 {
 Timer::Timer(i32 interval, std::function<void()> callback)
-    : _interval(interval), _state(State::STOPPED), _callback(callback)
+    : _interval(interval)
+    , _state(State::STOPPED)
+    , _callback(callback)
 {
     _fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
     if (_fd == -1) {
@@ -53,7 +56,8 @@ void Timer::onExpire()
     }
 
     LOG_DEBUG("Timer expired " + std::to_string(expirations) + " times");
-
+    
+    EventManager::getInstance().unregisterEvent(*this);
     _callback();
 }
 } // namespace taskmasterd
