@@ -1,5 +1,6 @@
 #pragma once
 
+#include "proto/taskmaster.pb.h"
 #include <ipc/include/ProtoReader.hpp>
 #include <ipc/include/ProtoWriter.hpp>
 #include <ipc/include/Socket.hpp>
@@ -10,12 +11,15 @@ namespace taskmasterd
 class Client : ipc::Socket // : public ProtoReader<proto::Command>
 {
 public:
+
+    using CommandCallback = std::function<void(proto::Command)>;
+
     /**
      * @brief Construct a new Client object.
      *
      * @param socket The connected socket representing the client.
      */
-    Client(ipc::Socket&& socket);
+    Client(ipc::Socket&& socket, CommandCallback callback);
     virtual ~Client();
 
     void handleRead();
@@ -40,5 +44,7 @@ public:
 private:
     ipc::ProtoReader<proto::Command>         _proto_reader;
     ipc::ProtoWriter<proto::CommandResponse> _proto_writer;
+
+    CommandCallback _on_command;
 };
 } // namespace taskmasterd

@@ -28,18 +28,18 @@ Process::Process(const std::string& name, pid_t pgid, std::function<void(Process
 {
 }
 
-Process::Process(Process&& other) noexcept
-    : FileDescriptor(std::move(other))
-    , _name(std::move(other._name))
-    , _pid(other._pid)
-    , _pgid(other._pgid)
-    , _state(other._state)
-    , _restarts(other.getRestarts())
-    , _onExit(std::move(other._onExit))
-    , _timer(std::move(other._timer))
-{
-    EventManager::getInstance().updateEvent(*this, std::bind(&Process::onStateChange, this), nullptr);
-}
+// Process::Process(Process&& other) noexcept
+//     : FileDescriptor(std::move(other))
+//     , _name(std::move(other._name))
+//     , _pid(other._pid)
+//     , _pgid(other._pgid)
+//     , _state(other._state)
+//     , _restarts(other.getRestarts())
+//     , _onExit(std::move(other._onExit))
+//     , _timer(std::move(other._timer))
+// {
+//     EventManager::getInstance().updateEvent(*this, std::bind(&Process::onStateChange, this), nullptr);
+// }
 
 void Process::start(const std::string& path, char* const* argv, char* const* env, const JobConfig& config)
 {
@@ -133,6 +133,7 @@ void Process::kill()
 void Process::onStateChange()
 {
     i32   status;
+
     pid_t result = waitpid(_pid, &status, 0);
     if (result == -1)
         throw std::runtime_error("waitpid failed for process '" + _name + "': " + strerror(errno));
@@ -179,7 +180,7 @@ void Process::onForcedExit(i32 status)
 
 void Process::onStartTime()
 {
-    LOG_INFO("Process succefully surpasses the start time" + _name);
+    LOG_INFO("Process: "  + _name + " succesfully surpasses the start time");
     _state = State::RUNNING;
 }
 

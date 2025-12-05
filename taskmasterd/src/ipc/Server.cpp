@@ -1,3 +1,4 @@
+#include "proto/taskmaster.pb.h"
 #include <taskmasterd/include/ipc/Server.hpp>
 
 #include <algorithm>
@@ -7,8 +8,9 @@
 
 namespace taskmasterd
 {
-Server::Server(Socket::Type type, const ipc::Address& address, i32 backlog)
+Server::Server(Socket::Type type, const ipc::Address& address, const std::string& config_path, i32 backlog)
     : Socket(type)
+    , _manager(config_path)
 {
     this->bind(address);
     this->listen(backlog);
@@ -28,9 +30,40 @@ void Server::onAccept()
     // Accept a new connection
     ipc::Socket client = this->accept();
 
-    _clients.emplace_back(std::make_unique<Client>(std::move(client)));
+    Client::CommandCallback cb = [this](proto::Command cmd) { 
+        this->onCommand(cmd); 
+    };
+
+    _clients.emplace_back(std::make_unique<Client>(std::move(client), std::move(cb)));
 
     // Clean up disconnected clients
     _clients.erase(std::remove_if(_clients.begin(), _clients.end(), [](const std::unique_ptr<Client>& client) { return client->isConnected() == false; }), _clients.end());
+}
+
+void Server::onCommand(proto::Command cmd)
+{
+    // extract the global
+    extern std::atomic<bool> g_running;
+
+    // TODO: handle the STATUS type
+    switch (cmd.type()) {
+        case proto::CommandType::START:
+            _manager.start(cmd.args(0));
+            break;
+        case proto::CommandType::STOP:
+            _manager.stop(cmd.args(0));
+            break;
+        case proto::CommandType::RESTART:
+            _manager.restart(cmd.args(0));
+            break;
+        case proto::CommandType::RELOAD:
+            _manager.reload(cmd.args(0));
+            break;
+        case proto::CommandType::TERMINATE:
+            g_running = false;
+            break;
+        default:
+            LOG_WARNING("Command type " + std::to_string(static_cast<i32>(cmd.type())) + " Not supported ");
+    }
 }
 } // namespace taskmasterd

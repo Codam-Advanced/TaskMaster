@@ -10,7 +10,7 @@ jobs:
       - 0
       - 2
     startretries: 3
-    starttime: 5
+    starttime: 1
     stopsignal: QUIT
     stoptime: 10
     stdout: /tmp/nginx.stdout
@@ -28,7 +28,7 @@ jobs:
     autorestart: unexpected
     exitcodes: 0
     startretries: 3
-    starttime: 5
+    starttime: 1
     stopsignal: QUIT
     stoptime: 10
     stdout: /tmp/vgsworker.stdout
