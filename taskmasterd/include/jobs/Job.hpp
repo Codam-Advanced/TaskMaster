@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <unistd.h>
 #include <vector>
 
@@ -49,12 +50,13 @@ public:
     const JobConfig& getConfig() const { return _config; }
 
 private:
+
     JobConfig                _config;
     std::vector<std::string> _args;
     std::vector<const char*> _argv;
     std::vector<const char*> _env;
 
     pid_t                _pgid;
-    std::vector<Process> _processes;
+    std::vector<std::unique_ptr<Process>> _processes;
 };
 } // namespace taskmasterd

@@ -34,7 +34,7 @@ public:
      * @param pgid The process group ID. If 0, the child's PID will be used as PGID.
      */
     Process(const std::string& name, pid_t pgid, std::function<void(Process&, i32)> callback);
-    Process(Process&&) noexcept;
+    // Process(Process&&) noexcept;
     virtual ~Process() = default;
 
     /**
