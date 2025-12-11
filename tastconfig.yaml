@@ -21,14 +21,14 @@ jobs:
 
   sleepy:
     cmd: "/usr/bin/sleep 4"
-    numprocs: 10
+    numprocs: 30
     umask: 077
     workingdir: /tmp
     autostart: true
-    autorestart: unexpected
+    autorestart: true
     exitcodes: 0
     startretries: 3
-    starttime: 1
+    starttime: 5
     stopsignal: QUIT
     stoptime: 10
     stdout: /tmp/vgsworker.stdout
