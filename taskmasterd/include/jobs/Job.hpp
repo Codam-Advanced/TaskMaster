@@ -12,6 +12,14 @@ namespace taskmasterd
 class Job
 {
 public:
+    enum class State
+    {
+        EMPTY, // The first time job is created or the config has been reloaded
+        RUNNING, // the job is running all its procceses
+        STOPPED, // the job is stopped all its procceses
+        RELOADING, // the job is reloading its configuration file
+    };
+
     /**
      * @brief Construct a new Job object.
      *
@@ -36,6 +44,14 @@ public:
     void stop();
 
     /**
+     * @brief Reload the job with a new configurations.
+     * 
+     * This method will stop all proccess and create new processes once all proccesses are stopped.
+     * This event will set a reloading state untill all processes are restarted.
+     */
+    void reload(const JobConfig& config);
+
+    /**
      * @brief function that is called by a process when it exited
      * 
      * This method will handle any exit removing or auto restarting a new process
@@ -51,12 +67,38 @@ public:
 
 private:
 
+    /**
+     * @brief Helper method to create and start each process
+     * 
+     */
+    void startProcesses();
+
+    /**
+     * @brief Helper method to restart existing proccesses
+     * 
+     */
+    void restartProcesses();
+
+    /**
+     * @brief Helper method to parse argument (argv, cmd)
+     * 
+     */
+    void parseArguments(const JobConfig& config);
+
+     /**
+      * @brief Helper method to parse Parse enviroment variables
+      * 
+      */
+    void parseEnviroment(const JobConfig& config);
+
     JobConfig                _config;
     std::vector<std::string> _args;
     std::vector<const char*> _argv;
     std::vector<const char*> _env;
-
-    pid_t                _pgid;
+    
+    State                   _state;
+    pid_t                   _pgid;
+    i32                     _stopped;
     std::vector<std::unique_ptr<Process>> _processes;
 };
 } // namespace taskmasterd

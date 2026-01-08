@@ -84,6 +84,12 @@ void Process::start(const std::string& path, char* const* argv, char* const* env
 
 void Process::stop(i32 timeout, Signals stop_signal)
 {
+    if (_state ==  Process::State::BACKOFF || _state == Process::State::EXITED)
+    {
+        _state = Process::State::STOPPED;
+        return;
+    }
+
     // get a shorter reference variable
     const JobConfig::SignalMap& sig_map = JobConfig::signals;
 
@@ -148,6 +154,7 @@ void Process::onExit(i32 status)
     case State::STOPPING:
         LOG_DEBUG("Process " + _name + " stopped with status " + std::to_string(WEXITSTATUS(status)));
         _state = State::STOPPED;
+        if (_onStop) _onStop();
         break;
     case State::STARTING:
         LOG_WARNING("Process " + _name + " did not reach the start time " + std::to_string(WEXITSTATUS(status)));
@@ -168,6 +175,7 @@ void Process::onForcedExit(i32 status)
 {
     LOG_DEBUG("Process " + _name + " terminated by signal " + std::to_string(WTERMSIG(status)));
     _state = State::STOPPED;
+    if (_onStop) _onStop();
 }
 
 void Process::onStartTime()

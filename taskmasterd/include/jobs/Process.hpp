@@ -1,6 +1,7 @@
 #pragma once
 
 #include "taskmasterd/include/jobs/Signal.hpp"
+#include <functional>
 #include <memory>
 #include <string>
 #include <unistd.h>
@@ -68,6 +69,12 @@ public:
      */
     void onStateChange();
 
+    /**
+     * @brief initialize a function on stop.
+     * 
+     */
+    void setOnStop(std::function<void()> cb) { _onStop = cb; };
+
     pid_t getPid() const { return _pid; }
 
     State getState() const { return _state; }
@@ -114,7 +121,8 @@ private:
     State       _state;
     i32         _restarts;
 
-    std::function<void(Process&, i32)> _onExit;
-    std::unique_ptr<Timer>             _timer;
+    std::function<void()>               _onStop;
+    std::function<void(Process&, i32)>  _onExit;
+    std::unique_ptr<Timer>              _timer;
 };
 } // namespace taskmasterd
