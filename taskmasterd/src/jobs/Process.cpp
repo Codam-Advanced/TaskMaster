@@ -28,21 +28,12 @@ Process::Process(const std::string& name, pid_t pgid, std::function<void(Process
 {
 }
 
-Process::Process(Process&& other) noexcept
-    : FileDescriptor(std::move(other))
-    , _name(std::move(other._name))
-    , _pid(other._pid)
-    , _pgid(other._pgid)
-    , _state(other._state)
-    , _restarts(other.getRestarts())
-    , _onExit(std::move(other._onExit))
-    , _timer(std::move(other._timer))
-{
-    EventManager::getInstance().updateEvent(*this, std::bind(&Process::onStateChange, this), nullptr);
-}
-
 void Process::start(const std::string& path, char* const* argv, char* const* env, const JobConfig& config)
 {
+    // if the process is in stopping state block untill process is stopped
+    while (_state == State::STOPPING)
+        EventManager::getInstance().handleEvents();
+
     // set a timeout that a process needs to stay alive to be a in a valid running state.
     _timer.reset(new Timer(config.start_time, std::bind(&Process::onStartTime, this)));
 
@@ -133,6 +124,7 @@ void Process::kill()
 void Process::onStateChange()
 {
     i32   status;
+
     pid_t result = waitpid(_pid, &status, 0);
     if (result == -1)
         throw std::runtime_error("waitpid failed for process '" + _name + "': " + strerror(errno));
@@ -160,11 +152,12 @@ void Process::onExit(i32 status)
     case State::STARTING:
         LOG_WARNING("Process " + _name + " did not reach the start time " + std::to_string(WEXITSTATUS(status)));
         _state = State::BACKOFF;
+        _onExit(*this, WEXITSTATUS(status));
         break;
     case State::RUNNING:
         LOG_DEBUG("Process " + _name + " exited with status " + std::to_string(WEXITSTATUS(status)));
-        _onExit(*this, WEXITSTATUS(status));
         _state = State::EXITED;
+        _onExit(*this, WEXITSTATUS(status));
         break;
     default:
         LOG_WARNING("Process " + _name + " stopped in a wierd state " + std::to_string(static_cast<int>(_state)));
@@ -179,7 +172,7 @@ void Process::onForcedExit(i32 status)
 
 void Process::onStartTime()
 {
-    LOG_INFO("Process succefully surpasses the start time" + _name);
+    LOG_INFO("Process: "  + _name + " succesfully surpasses the start time");
     _state = State::RUNNING;
 }
 

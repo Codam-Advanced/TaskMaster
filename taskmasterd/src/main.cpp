@@ -1,4 +1,3 @@
-#include "taskmasterd/include/jobs/JobManager.hpp"
 #include <logger/include/Logger.hpp>
 
 #include <csignal>
@@ -7,14 +6,13 @@
 #include <taskmasterd/include/ipc/Server.hpp>
 #include <taskmasterd/include/jobs/Job.hpp>
 #include <taskmasterd/include/jobs/JobConfig.hpp>
+#include <taskmasterd/include/core/Globals.hpp>
 
 #ifndef PROGRAM_NAME
 #define PROGRAM_NAME "taskmasterd"
 #endif
 
 using namespace taskmasterd;
-
-std::atomic<bool> g_running = true;
 
 void signalHandler(int signum)
 {
@@ -35,11 +33,7 @@ int main(int argc, char** argv)
     LOG_INFO("Starting " PROGRAM_NAME);
 
     try {
-        JobManager manager("./../tastconfig.yaml");
-
-        manager.start();
-
-        Server server(ipc::Socket::Type::UNIX, ipc::Address::UNIX("/tmp/taskmasterd.sock"));
+        Server server(ipc::Socket::Type::UNIX, ipc::Address::UNIX("/tmp/taskmasterd.sock"), "./../tastconfig.yaml");
 
         while (g_running) {
             EventManager::getInstance().handleEvents();

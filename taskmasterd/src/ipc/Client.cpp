@@ -8,9 +8,10 @@
 
 namespace taskmasterd
 {
-Client::Client(Socket&& socket)
+Client::Client(Socket&& socket, CommandCallback callback)
     // : ProtoReader<proto::Command>(std::move(socket))
     : Socket(std::move(socket))
+    , _on_command(callback)
 {
     EventManager::getInstance().registerEvent(*this, std::bind(&Client::handleRead, this), nullptr);
 
@@ -75,7 +76,9 @@ void Client::handleMessage(proto::Command command)
     // Stop reading new commands, we need to process write the response out first
     EventManager::getInstance().unregisterEvent(*this);
 
-    // TODO: Process the command as needed
+    // call the server callback
+    // TODO: catch exceptions and return the nessesary response status
+    _on_command(command);
 
     // Get ready to send the command response
     proto::CommandResponse response;
