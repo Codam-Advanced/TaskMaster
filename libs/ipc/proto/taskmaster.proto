@@ -19,6 +19,9 @@ message Command {
 enum CommandStatus {
     OK = 0;
     ERROR = 1;
+    TOO_MANY_ARGUMENTS = 2;
+    ARGUMENT_ERROR = 3;
+    TYPE_ERROR = 4;
 }
 
 message CommandResponse {

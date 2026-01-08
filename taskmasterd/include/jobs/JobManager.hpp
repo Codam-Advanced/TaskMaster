@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <proto/taskmaster.pb.h>
 #include <taskmasterd/include/jobs/Job.hpp>
 #include <unordered_map>
 
@@ -35,7 +36,7 @@ public:
      * @param job_name
      * @throw std::runtime_error if the job cannot be found.
      */
-    void start(const std::string& job_name);
+    proto::CommandResponse start(const std::string& job_name);
 
     /**
      * @brief Stop a specific program specified by its name
@@ -43,7 +44,7 @@ public:
      * @param job_name
      * @throw std::runtime_error if the job cannot be found.
      */
-    void stop(const std::string& job_name);
+    proto::CommandResponse stop(const std::string& job_name);
 
     /**
      * @brief Stop all programs as soon as possible this may be used
@@ -58,7 +59,7 @@ public:
      * @param job_name
      * @throw std::runtime_error if the job cannot be found.
      */
-    void restart(const std::string& job_name);
+    proto::CommandResponse restart(const std::string& job_name);
 
     /**
      * @brief Reload the default configuration file
@@ -70,7 +71,17 @@ public:
      * @brief Reload the with a specific configuration file
      * this will stop all jobs and start all jobs with the autostart config
      */
-    void reload(const std::string& config_path);
+    proto::CommandResponse reload(const std::string& config_path);
+
+    /**
+     * @brief Returns the status of all jobs inside of a CommandResponse.
+     */
+    proto::CommandResponse status();
+
+    /**
+     * @brief Returns the status of a specific job inside of a CommandResponse.
+     */
+    proto::CommandResponse status(const std::string& job_name);
 
 private:
     /**

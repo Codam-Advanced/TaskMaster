@@ -14,6 +14,7 @@ class Server : public ipc::Socket
 {
 public:
     using Clients = std::vector<std::unique_ptr<Client>>;
+    using ProtoArgs = google::protobuf::RepeatedPtrField<std::string>;
 
     /**
      * @brief Construct a new Server object.
@@ -34,15 +35,22 @@ public:
     void onAccept();
 
     /**
-     * @brief This function is called by the client to send its recieved command to the server
+     * @brief This function is called by the client to send its received command to the server
      * 
      * It is responsible to parse the command and give the result to specific job command through the job manager
      * @param cmd The proto command that the job manager should handle.
      */
-    void onCommand(proto::Command cmd);
+    proto::CommandResponse onCommand(proto::Command cmd);
 
 private:
     Clients    _clients;
     JobManager _manager;
+
+    /**
+     * @brief Parses the given command's argument count depending on the set command type.
+     * 
+     * @return nullopt on passing parse, a CommandResponse on error.
+     */
+    std::optional<proto::CommandResponse> parse_command(const proto::Command& cmd);
 };
 } // namespace taskmasterd
