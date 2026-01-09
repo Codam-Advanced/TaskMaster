@@ -92,11 +92,9 @@ proto::CommandResponse JobManager::status()
 
     res.set_status(proto::CommandStatus::OK);
     msg << "┌──────────────────────┬──────────────────────┬──────────────────────┐\n";
-    msg << "│       Job Name:      │     Job Status:      │   Process Status:    │\n";
-    msg << "├──────────────────────┼──────────────────────┼──────────────────────┤\n";
+    msg << "│         Name:        │     Job Status:      │   Process Status:    │\n";
     for (auto& [_, job] : _jobs) {
-        (void) job;
-        // msg << job;
+        msg << job;
     }
     msg << "└──────────────────────┴──────────────────────┴──────────────────────┘\n";
     res.set_message(msg.str());
@@ -112,9 +110,7 @@ proto::CommandResponse JobManager::status(const std::string& job_name)
     res.set_status(proto::CommandStatus::OK);
     msg << "┌──────────────────────┬──────────────────────┬──────────────────────┐\n";
     msg << "│       Job Name:      │     Job Status:      │   Process Status:    │\n";
-    msg << "├──────────────────────┼──────────────────────┼──────────────────────┤\n";
-    (void) job;
-    // msg << job;
+    msg << job;
     msg << "└──────────────────────┴──────────────────────┴──────────────────────┘\n";
     res.set_message(msg.str());
     return res;

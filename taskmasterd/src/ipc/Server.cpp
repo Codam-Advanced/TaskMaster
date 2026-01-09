@@ -37,7 +37,7 @@ void Server::onAccept()
     // Accept a new connection
     ipc::Socket client = this->accept();
 
-    Client::CommandCallback cb = [this](proto::Command cmd) { this->onCommand(cmd); };
+    Client::CommandCallback cb = [this](proto::Command cmd) { return this->onCommand(cmd); };
 
     _clients.emplace_back(std::make_unique<Client>(std::move(client), std::move(cb)));
 
@@ -45,7 +45,7 @@ void Server::onAccept()
     _clients.erase(std::remove_if(_clients.begin(), _clients.end(), [](const std::unique_ptr<Client>& client) { return client->isConnected() == false; }), _clients.end());
 }
 
-static const char* enum_to_string(const proto::CommandType type)
+static const char* commandTypeEnumToString(const proto::CommandType type)
 {
     switch (type) {
     case proto::CommandType::START:
@@ -54,20 +54,22 @@ static const char* enum_to_string(const proto::CommandType type)
         return "stop";
     case proto::CommandType::RESTART:
         return "restart";
+    case proto::CommandType::STATUS:
+        return "status";
     case proto::CommandType::RELOAD:
         return "reload";
     case proto::CommandType::TERMINATE:
         return "terminate";
     default:
-        return nullptr;
+        return "invalid";
     }
-    return nullptr;
+    return "invalid";
 }
 
-std::optional<proto::CommandResponse> Server::parse_command(const proto::Command& cmd)
+std::optional<proto::CommandResponse> Server::parseCommand(const proto::Command& cmd)
 {
     proto::CommandResponse error_response;
-    const std::string      cmd_str  = enum_to_string(cmd.type());
+    const std::string      cmd_str  = commandTypeEnumToString(cmd.type());
     const auto             arg_size = cmd.args().size();
 
     if (cmd.type() == proto::CommandType::START || cmd.type() == proto::CommandType::STOP || cmd.type() == proto::CommandType::RESTART || cmd.type() == proto::CommandType::RELOAD) {
@@ -110,7 +112,7 @@ proto::CommandResponse Server::onCommand(proto::Command cmd)
     extern std::atomic<bool> g_running;
     proto::CommandResponse   response;
 
-    auto res = parse_command(cmd);
+    auto res = parseCommand(cmd);
     if (res.has_value())
         return res.value();
 

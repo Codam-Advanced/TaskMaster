@@ -12,7 +12,7 @@ class Client : ipc::Socket // : public ProtoReader<proto::Command>
 {
 public:
 
-    using CommandCallback = std::function<void(proto::Command)>;
+    using CommandCallback = std::function<proto::CommandResponse(proto::Command)>;
 
     /**
      * @brief Construct a new Client object.

@@ -51,6 +51,6 @@ private:
      * 
      * @return nullopt on passing parse, a CommandResponse on error.
      */
-    std::optional<proto::CommandResponse> parse_command(const proto::Command& cmd);
+    std::optional<proto::CommandResponse> parseCommand(const proto::Command& cmd);
 };
 } // namespace taskmasterd

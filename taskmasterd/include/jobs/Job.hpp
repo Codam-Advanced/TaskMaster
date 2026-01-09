@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <unistd.h>
+#include <iostream>
 #include <vector>
 
 #include <taskmasterd/include/jobs/JobConfig.hpp>
@@ -49,6 +50,16 @@ public:
      */
     const JobConfig& getConfig() const { return _config; }
 
+    /**
+     * @brief Get the state of a process at a specific index belonging to this Job.
+     */
+    const std::unique_ptr<Process>& getProcess(const u32 index) const { return _processes.at(index); }
+
+    /**
+     * @brief Get the amount of processes belonging to this Job.
+     */
+    u32 getProcessCount() const {return _processes.size(); }
+
 private:
 
     JobConfig                _config;
@@ -59,4 +70,7 @@ private:
     pid_t                _pgid;
     std::vector<std::unique_ptr<Process>> _processes;
 };
+
+std::ostream& operator<<(std::ostream& os, const Job& job);
+
 } // namespace taskmasterd
