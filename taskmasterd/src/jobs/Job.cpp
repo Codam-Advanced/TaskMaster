@@ -3,6 +3,7 @@
 #include "taskmasterd/include/jobs/Process.hpp"
 #include <bits/stdc++.h>
 #include <memory>
+#include <string>
 #include <taskmasterd/include/core/EventManager.hpp>
 #include <taskmasterd/include/jobs/Job.hpp>
 #include <utils/include/utils.hpp>
@@ -19,7 +20,6 @@ Job::Job(const JobConfig& config)
 
     _state = State::EMPTY;
 }
-
 
 void Job::parseArguments(const JobConfig& config)
 {
@@ -45,9 +45,12 @@ void Job::parseEnviroment(const JobConfig& config)
 
 void Job::start()
 {
+    LOG_DEBUG("Start called called for process" + std::to_string(static_cast<i32>(_state)));
+
     switch (_state) {
-    case State::RUNNING:
-        break;
+
+    case State::STOPPING:
+        restartProcesses();
 
     case State::STOPPED:
         restartProcesses();
@@ -57,17 +60,16 @@ void Job::start()
         startProcesses();
         break;
 
-    case State::RELOADING:
+    default:
         break;
     }
 
-    _state = State::RUNNING;
+    _state = State::STARTING;
 }
 
 void Job::startProcesses()
 {
     // We reserve the amount of processes for the vector to avoid then need to move
-    // already started processes
     if (_processes.size() == 0)
         _processes.reserve(_config.numprocs);
 
@@ -76,7 +78,7 @@ void Job::startProcesses()
     for (i32 i = 0; i < _config.numprocs; i++) {
         std::string proc_name = _config.name + "_" + std::to_string(i);
 
-        std::unique_ptr<Process>& proc = _processes.emplace_back(std::make_unique<Process>(proc_name, _pgid, std::bind(&Job::onExit, this, std::placeholders::_1, std::placeholders::_2)));
+        std::unique_ptr<Process>& proc = _processes.emplace_back(std::make_unique<Process>(proc_name, _pgid, *this));
 
         proc->start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
         // Set the job's pgid to the first process's pid
@@ -89,23 +91,22 @@ void Job::startProcesses()
 void Job::restartProcesses()
 {
     for (i32 i = 0; i < _config.numprocs; i++) {
-        Process::State state = _processes[i]->getState();
 
         _processes[i]->resetRestarts();
-        if (state == Process::State::STOPPING) {
-            _processes[i]->setOnStop([this, i]() { _processes[i]->start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config); });
-        }
+        if (_processes[i]->getState() == Process::State::STOPPED)
+            _processes[i]->start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
     }
 }
 
 void Job::stop()
 {
-    for (auto& proc : _processes) {
-        if (proc->getState() == Process::State::RUNNING || proc->getState() == Process::State::STARTING)
-            proc->stop(_config.stop_time, _config.stop_signal);
-    }
+    if (_state == State::STOPPING || _state == State::STOPPED)
+        return;
 
-    _state = State::STOPPED;
+    for (auto& proc : _processes)
+        proc->stop(_config.stop_time, _config.stop_signal);
+
+    _state = State::STOPPING;
 }
 
 void Job::reload(const JobConfig& config)
@@ -118,26 +119,6 @@ void Job::reload(const JobConfig& config)
     // parse the new config variables
     parseArguments(config);
     parseEnviroment(config);
-
-    for (auto& proc : _processes) {
-        if (proc->getState() == Process::State::STOPPING) {
-            proc->setOnStop([this, config]() {
-                _stopped++;
-
-                // We want to wait for all number processes to stop
-                // so that we can clear the vector before creating the new processes.
-                if (_stopped == _config.numprocs) {
-                    _processes.clear();
-                    _config = config;
-
-                    _state = State::RUNNING;
-                    this->startProcesses();
-                }
-            });
-        } else {
-            _stopped++;
-        }
-    }
 }
 
 void Job::onExit(Process& proc, i32 status_code)
@@ -162,6 +143,24 @@ void Job::onExit(Process& proc, i32 status_code)
             }
         }
         proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
+    }
+}
+
+void Job::onStop(Process& proc)
+{
+    _stopped++;
+
+    switch (_state) {
+    case State::STARTING:
+        _stopped--;
+        proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
+        break;
+    case State::STOPPING:
+        if (_stopped == _config.numprocs)
+            _state = State::STOPPED;
+        break;
+    default:
+        LOG_DEBUG("on stop called for process" + proc.getName() + std::to_string(static_cast<i32>(_state)));
     }
 }
 

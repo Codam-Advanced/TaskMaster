@@ -12,6 +12,8 @@
 
 namespace taskmasterd
 {
+
+class Job;
 class Process : public ipc::FileDescriptor
 {
 public:
@@ -34,7 +36,7 @@ public:
      * @param name The name of the process.
      * @param pgid The process group ID. If 0, the child's PID will be used as PGID.
      */
-    Process(const std::string& name, pid_t pgid, std::function<void(Process&, i32)> callback);
+    Process(const std::string& name, pid_t pgid, Job& job);
     virtual ~Process() = default;
 
     /**
@@ -69,12 +71,6 @@ public:
      */
     void onStateChange();
 
-    /**
-     * @brief initialize a function on stop.
-     * 
-     */
-    void setOnStop(std::function<void()> cb) { _onStop = cb; };
-
     pid_t getPid() const { return _pid; }
 
     State getState() const { return _state; }
@@ -83,7 +79,7 @@ public:
 
     const std::string& getName() const { return _name; }
 
-    void addRestart() { _restarts++; }  
+    void addRestart() { _restarts++; }
     void resetRestarts() { _restarts = 0; }
 
 private:
@@ -111,7 +107,7 @@ private:
     /**
      * @brief Helper method to dup a path instead of a fd
      *
-     * the reason is to safe line spaces 
+     * the reason is to safe line spaces
      */
     void dupPath(i32 std_input, const std::string& path);
 
@@ -120,9 +116,8 @@ private:
     pid_t       _pgid;
     State       _state;
     i32         _restarts;
+    Job&        _job;
 
-    std::function<void()>               _onStop;
-    std::function<void(Process&, i32)>  _onExit;
-    std::unique_ptr<Timer>              _timer;
+    std::unique_ptr<Timer>             _timer;
 };
 } // namespace taskmasterd
