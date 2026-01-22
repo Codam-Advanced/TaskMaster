@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <taskmasterd/include/jobs/Process.hpp>
+#include "taskmasterd/include/jobs/Job.hpp"
 
 #include <signal.h>
 #include <stdexcept>
@@ -18,22 +19,18 @@
 
 namespace taskmasterd
 {
-Process::Process(const std::string& name, pid_t pgid, std::function<void(Process&, i32)> callback)
+Process::Process(const std::string& name, pid_t pgid, Job& job)
     : _name(name)
     , _pid(-1)
     , _pgid(pgid)
     , _state(State::STOPPED)
     , _restarts(0)
-    , _onExit(callback)
+    , _job(job)
 {
 }
 
 void Process::start(const std::string& path, char* const* argv, char* const* env, const JobConfig& config)
 {
-    // if the process is in stopping state block untill process is stopped
-    while (_state == State::STOPPING)
-        EventManager::getInstance().handleEvents();
-
     // set a timeout that a process needs to stay alive to be a in a valid running state.
     _timer.reset(new Timer(config.start_time, std::bind(&Process::onStartTime, this)));
 
@@ -84,6 +81,12 @@ void Process::start(const std::string& path, char* const* argv, char* const* env
 
 void Process::stop(i32 timeout, Signals stop_signal)
 {
+    if (_state ==  Process::State::BACKOFF || _state == Process::State::EXITED)
+    {
+        _state = Process::State::STOPPED;
+        return;
+    }
+
     // get a shorter reference variable
     const JobConfig::SignalMap& sig_map = JobConfig::signals;
 
@@ -148,16 +151,17 @@ void Process::onExit(i32 status)
     case State::STOPPING:
         LOG_DEBUG("Process " + _name + " stopped with status " + std::to_string(WEXITSTATUS(status)));
         _state = State::STOPPED;
+        _job.onStop(*this);
         break;
     case State::STARTING:
         LOG_WARNING("Process " + _name + " did not reach the start time " + std::to_string(WEXITSTATUS(status)));
         _state = State::BACKOFF;
-        _onExit(*this, WEXITSTATUS(status));
+        _job.onExit(*this, WEXITSTATUS(status));
         break;
     case State::RUNNING:
         LOG_DEBUG("Process " + _name + " exited with status " + std::to_string(WEXITSTATUS(status)));
         _state = State::EXITED;
-        _onExit(*this, WEXITSTATUS(status));
+        _job.onExit(*this, WEXITSTATUS(status));
         break;
     default:
         LOG_WARNING("Process " + _name + " stopped in a wierd state " + std::to_string(static_cast<int>(_state)));
@@ -168,6 +172,7 @@ void Process::onForcedExit(i32 status)
 {
     LOG_DEBUG("Process " + _name + " terminated by signal " + std::to_string(WTERMSIG(status)));
     _state = State::STOPPED;
+    _job.onStop(*this);
 }
 
 void Process::onStartTime()
