@@ -91,12 +91,10 @@ proto::CommandResponse JobManager::status()
     std::stringstream      msg;
 
     res.set_status(proto::CommandStatus::OK);
-    msg << "┌──────────────────────┬──────────────────────┬──────────────────────┐\n";
-    msg << "│         Name:        │     Job Status:      │   Process Status:    │\n";
     for (auto& [_, job] : _jobs) {
         msg << job;
+        msg << "\n";
     }
-    msg << "└──────────────────────┴──────────────────────┴──────────────────────┘\n";
     res.set_message(msg.str());
     return res;
 }
@@ -108,10 +106,7 @@ proto::CommandResponse JobManager::status(const std::string& job_name)
     Job&                   job = findJob(job_name);
 
     res.set_status(proto::CommandStatus::OK);
-    msg << "┌──────────────────────┬──────────────────────┬──────────────────────┐\n";
-    msg << "│       Job Name:      │     Job Status:      │   Process Status:    │\n";
     msg << job;
-    msg << "└──────────────────────┴──────────────────────┴──────────────────────┘\n";
     res.set_message(msg.str());
     return res;
 }

@@ -18,7 +18,7 @@ Job::Job(const JobConfig& config)
     , _stopped(0)
 {
     parseArguments(config);
-    parseEnviroment(config);
+    parseEnvironment(config);
 
     _state = State::EMPTY;
 }
@@ -34,7 +34,7 @@ void Job::parseArguments(const JobConfig& config)
     _argv.push_back(nullptr);
 }
 
-void Job::parseEnviroment(const JobConfig& config)
+void Job::parseEnvironment(const JobConfig& config)
 {
 
     _env.reserve(config.env.size() + 1);
@@ -120,7 +120,7 @@ void Job::reload(const JobConfig& config)
 
     // parse the new config variables
     parseArguments(config);
-    parseEnviroment(config);
+    parseEnvironment(config);
 }
 
 void Job::onExit(Process& proc, i32 status_code)
@@ -170,6 +170,24 @@ static char const* processStateEnumToString(Process::State state)
     }
 }
 
+static char const* jobStateEnumToString(Job::State state)
+{
+    switch (state) {
+    case Job::State::EMPTY:
+        return "EMPTY";
+    case Job::State::STARTING:
+        return "STARTING";
+    case Job::State::RUNNING:
+        return "RUNNING";
+    case Job::State::STOPPING:
+        return "STOPPING";
+    case Job::State::STOPPED:
+        return "STOPPED";
+    default:
+        return "UNKNOWN";
+    }
+}
+
 static std::string formatColumn(std::string name, bool should_concatenate, u32 left_width, u32 right_width)
 {
     std::stringstream stream;
@@ -199,12 +217,14 @@ std::ostream& operator<<(std::ostream& os, const Job& job)
     const u32   max_size      = 20;
     const u32   process_count = job.getProcessCount();
     std::string name          = job.getConfig().name;
-    char const* state;
+    char const* jobStateStr;
+    char const* processStateStr;
     u32         left_width;
     u32         right_width;
 
-    // End the previous print
-    os << "├──────────────────────┼──────────────────────┼──────────────────────┤\n";
+    os << "┌──────────────────────┬──────────────────────┬──────────────────────┬──────────────────────┐\n";
+    os << "│       Job Name:      │     Job Status:      │    Proccess Name:    │   Process Status:    │\n";
+    os << "├──────────────────────┼──────────────────────┼──────────────────────┼──────────────────────┤\n";
 
     // Start the entry
     os << "|";
@@ -213,44 +233,38 @@ std::ostream& operator<<(std::ostream& os, const Job& job)
     setFillerWidth(name, left_width, right_width);
     os << formatColumn(name, name.size() > max_size, left_width, right_width);
 
-    // TODO: Job state:
-    // name = jobStateEnumToString(job.getState());
-    name = "";
-    setFillerWidth(name, left_width, right_width);
-    os << formatColumn(name, name.size() > max_size, left_width, right_width);
+    jobStateStr = jobStateEnumToString(job.getState());
+    setFillerWidth(jobStateStr, left_width, right_width);
+    os << formatColumn(jobStateStr, strlen(jobStateStr) > max_size, left_width, right_width);
 
-    // Process state, not used for the Job.
-    state = "";
-    setFillerWidth(state, left_width, right_width);
-    os << formatColumn(state, strlen(state) > max_size, left_width, right_width);
+    // Start next line, leaving the proccess name and status empty
+    os << "                      |                      |\n";
 
-    // Start next line
-    os << "\n";
-
+    // Start proccess info printing
+    os << "├──────────────────────┼──────────────────────┼──────────────────────┼──────────────────────┤\n";
     // Insert the state of every process in the stream:
     for (u32 i = 0; i < process_count; i++) {
         const std::unique_ptr<Process>& current_process = job.getProcess(i);
         Process::State                  processState    = current_process->getState();
 
-        // Start the entry
-        os << "|";
+        // Start the entry, leave the job name and status empty
+        os << "|                      |                      |";
 
         // Insert the name
         name = current_process->getName();
         setFillerWidth(name, left_width, right_width);
         os << formatColumn(name, name.size() > max_size, left_width, right_width);
 
-        // Leave Job state empty
-        os << "                      |";
-
         // Insert process state
-        state = processStateEnumToString(processState);
-        setFillerWidth(state, left_width, right_width);
-        os << formatColumn(state, strlen(state) > max_size, left_width, right_width);
+        processStateStr = processStateEnumToString(processState);
+        setFillerWidth(processStateStr, left_width, right_width);
+        os << formatColumn(processStateStr, strlen(processStateStr) > max_size, left_width, right_width);
 
         // Start next line
         os << "\n";
     }
+
+    os << "└──────────────────────┴──────────────────────┴──────────────────────┴──────────────────────┘\n";
 
     return os;
 }

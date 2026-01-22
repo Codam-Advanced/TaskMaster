@@ -89,7 +89,12 @@ public:
     /**
      * @brief Get the amount of processes belonging to this Job.
      */
-    u32 getProcessCount() const {return _processes.size(); }
+    u32 getProcessCount() const { return _processes.size(); }
+
+    /**
+     * @brief Get the state of this job.
+     */
+    State getState() const { return _state; }
 
 private:
     /**
@@ -111,10 +116,10 @@ private:
     void parseArguments(const JobConfig& config);
 
     /**
-     * @brief Helper method to parse Parse enviroment variables
+     * @brief Helper method to parse Parse environment variables
      *
      */
-    void parseEnviroment(const JobConfig& config);
+    void parseEnvironment(const JobConfig& config);
 
     JobConfig                _config;
     std::vector<std::string> _args;
