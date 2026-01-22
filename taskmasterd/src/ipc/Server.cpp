@@ -57,7 +57,7 @@ void Server::onCommand(proto::Command cmd)
             _manager.restart(cmd.args(0));
             break;
         case proto::CommandType::RELOAD:
-            _manager.reload(cmd.args(0));
+            _manager.reload();
             break;
         case proto::CommandType::TERMINATE:
             g_running = false;

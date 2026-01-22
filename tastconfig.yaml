@@ -21,7 +21,7 @@ jobs:
 
   sleepy:
     cmd: "/usr/bin/sleep 4"
-    numprocs: 5
+    numprocs: 9
     umask: 077
     workingdir: /tmp
     autostart: true

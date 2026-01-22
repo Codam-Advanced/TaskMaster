@@ -12,6 +12,9 @@ class JobManager
 public:
     JobManager() = delete;
 
+    using ConfigMap = std::unordered_map<std::string, JobConfig>;
+    using JobMap    = std::unordered_map<std::string, Job>;
+
     /**
      * @brief Construct a job manager that accepts the config file path
      * it will parse and constuct the individual jobs
@@ -66,11 +69,13 @@ public:
      */
     void reload();
 
+
     /**
-     * @brief Reload the with a specific configuration file
-     * this will stop all jobs and start all jobs with the autostart config
+     * @brief This function is called by a job object once it's stopped. The manager can handle how it likes
+     * 
+     * @param job_name 
      */
-    void reload(const std::string& config_path);
+    void onStop(const std::string& job_name);
 
 private:
     /**
@@ -88,8 +93,9 @@ private:
      */
     void reloadJobs(const std::string& config_path);
 
-    std::unordered_map<std::string, Job> _jobs;
-    std::string                          _config;
+    JobMap       _jobs;
+    ConfigMap    _config;
+    std::string  _config_path;
 };
 
 } // namespace taskmasterd

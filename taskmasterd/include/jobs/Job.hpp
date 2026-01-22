@@ -11,17 +11,17 @@ namespace taskmasterd
 {
 
 class Process;
+class JobManager;
 class Job
 {
 public:
     enum class State
     {
-        EMPTY,     // The first time job is created or the config has been reloaded
-        STARTING,  // the job is starting all its procceses
-        RUNNING,   // the job is running all its procceses
-        STOPPING,  // the job is stopping all its procceses
-        STOPPED,   // the job is stopped all its procceses
-        RELOADING, // the job is reloading its configuration file
+        EMPTY,    // The first time job is created or the config has been reloaded
+        STARTING, // the job is starting all its procceses
+        RUNNING,  // the job is running all its procceses
+        STOPPING, // the job is stopping all its procceses
+        STOPPED,  // the job is stopped all its procceses
     };
 
     /**
@@ -29,7 +29,7 @@ public:
      *
      * @param config The job configuration.
      */
-    Job(const JobConfig& config);
+    Job(const JobConfig& config, JobManager& manager);
     virtual ~Job() = default;
 
     /**
@@ -48,20 +48,11 @@ public:
     void stop();
 
     /**
-     * @brief Reload the job with a new configurations.
-     *
-     * This method will stop all proccess and create new processes once all proccesses are stopped.
-     * This event will set a reloading state untill all processes are restarted.
-     */
-    void reload(const JobConfig& config);
-
-    /**
      * @brief function that is called by a process when it exited
      *
      * This method will handle any exit removing or auto restarting a new process
      */
     void onExit(Process&, i32 status_code);
-
 
     /**
      * @brief function that is called by a process when it exited
@@ -75,10 +66,9 @@ public:
      *
      * @return The job configuration.
      */
-    const JobConfig& getConfig() const
-    {
-        return _config;
-    }
+    const JobConfig& getConfig() const { return _config; }
+
+    friend Process;
 
 private:
     /**
@@ -94,6 +84,18 @@ private:
     void restartProcesses();
 
     /**
+     * @brief Method to tell the job a proccess has been stopped
+     *
+     */
+    void processStopped() { _stopped++; }
+    
+    /**
+     * @brief Method to tell the job a proccess has started
+     *
+     */
+    void processStarted() { _stopped--; }
+
+    /**
      * @brief Helper method to parse argument (argv, cmd)
      *
      */
@@ -106,6 +108,7 @@ private:
     void parseEnviroment(const JobConfig& config);
 
     JobConfig                _config;
+    JobManager&              _manager;
     std::vector<std::string> _args;
     std::vector<const char*> _argv;
     std::vector<const char*> _env;

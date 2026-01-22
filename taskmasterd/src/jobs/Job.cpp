@@ -6,14 +6,16 @@
 #include <string>
 #include <taskmasterd/include/core/EventManager.hpp>
 #include <taskmasterd/include/jobs/Job.hpp>
+#include <taskmasterd/include/jobs/JobManager.hpp>
 #include <utils/include/utils.hpp>
 
 namespace taskmasterd
 {
-Job::Job(const JobConfig& config)
+Job::Job(const JobConfig& config, JobManager& manager)
     : _config(config)
+    , _manager(manager)
     , _pgid(0)
-    , _stopped(0)
+    , _stopped(config.numprocs)
 {
     parseArguments(config);
     parseEnviroment(config);
@@ -51,6 +53,7 @@ void Job::start()
 
     case State::STOPPING:
         restartProcesses();
+        break;
 
     case State::STOPPED:
         restartProcesses();
@@ -73,8 +76,6 @@ void Job::startProcesses()
     if (_processes.size() == 0)
         _processes.reserve(_config.numprocs);
 
-    _stopped = 0;
-
     for (i32 i = 0; i < _config.numprocs; i++) {
         std::string proc_name = _config.name + "_" + std::to_string(i);
 
@@ -86,6 +87,8 @@ void Job::startProcesses()
             _pgid = proc->getPid();
         }
     }
+
+    _state = State::RUNNING;
 }
 
 void Job::restartProcesses()
@@ -109,17 +112,6 @@ void Job::stop()
     _state = State::STOPPING;
 }
 
-void Job::reload(const JobConfig& config)
-{
-    _state = State::RELOADING;
-
-    // first stop all processes
-    this->stop();
-
-    // parse the new config variables
-    parseArguments(config);
-    parseEnviroment(config);
-}
 
 void Job::onExit(Process& proc, i32 status_code)
 {
@@ -148,16 +140,17 @@ void Job::onExit(Process& proc, i32 status_code)
 
 void Job::onStop(Process& proc)
 {
-    _stopped++;
-
     switch (_state) {
     case State::STARTING:
-        _stopped--;
         proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
+        if (_stopped == 0)
+            _state = State::RUNNING;
         break;
     case State::STOPPING:
-        if (_stopped == _config.numprocs)
-            _state = State::STOPPED;
+        if (_stopped != _config.numprocs)
+            break;
+        _state = State::STOPPED;
+        _manager.onStop(_config.name);
         break;
     default:
         LOG_DEBUG("on stop called for process" + proc.getName() + std::to_string(static_cast<i32>(_state)));

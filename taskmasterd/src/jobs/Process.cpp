@@ -70,6 +70,7 @@ void Process::start(const std::string& path, char* const* argv, char* const* env
 
     // Parent Process
     _state = State::STARTING;
+    _job.processStarted();
     _timer->start();
 
     LOG_DEBUG("Started process " + _name + " with PID " + std::to_string(_pid));
@@ -77,6 +78,7 @@ void Process::start(const std::string& path, char* const* argv, char* const* env
         throw std::runtime_error("Failed to open pidfd for process '" + _name + "': " + strerror(errno));
 
     EventManager::getInstance().registerEvent(*this, std::bind(&Process::onStateChange, this), nullptr);
+
 }
 
 void Process::stop(i32 timeout, Signals stop_signal)
@@ -133,7 +135,7 @@ void Process::onStateChange()
         throw std::runtime_error("waitpid failed for process '" + _name + "': " + strerror(errno));
 
     _timer.reset();
-
+    _job.processStopped();
     EventManager::getInstance().unregisterEvent(*this);
 
     if (WIFEXITED(status))
