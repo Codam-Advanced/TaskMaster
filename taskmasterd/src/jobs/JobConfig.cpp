@@ -92,6 +92,9 @@ void parseExitCodes(JobConfig* object, const YAML::Node& config)
     } else {
         object->exit_codes = config.as<std::vector<i32>>();
     }
+
+    // sort the vector so that it can be properly compared
+    std::sort(object->exit_codes.begin(), object->exit_codes.end());
 }
 
 void parseStartRetries(JobConfig* object, const YAML::Node& config)

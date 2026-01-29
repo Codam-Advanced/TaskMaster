@@ -70,13 +70,15 @@ void Process::start(const std::string& path, char* const* argv, char* const* env
 
     // Parent Process
     _state = State::STARTING;
+
     _timer->start();
 
-    LOG_DEBUG("Started process " + _name + " with PID " + std::to_string(_pid));
+    LOG_INFO("Started process " + _name + " with PID " + std::to_string(_pid));
     if ((_fd = pidfd_open(_pid, 0)) == -1)
         throw std::runtime_error("Failed to open pidfd for process '" + _name + "': " + strerror(errno));
 
     EventManager::getInstance().registerEvent(*this, std::bind(&Process::onStateChange, this), nullptr);
+
 }
 
 void Process::stop(i32 timeout, Signals stop_signal)
@@ -84,6 +86,7 @@ void Process::stop(i32 timeout, Signals stop_signal)
     if (_state ==  Process::State::BACKOFF || _state == Process::State::EXITED)
     {
         _state = Process::State::STOPPED;
+        _job.onStop(*this);
         return;
     }
 
@@ -100,7 +103,7 @@ void Process::stop(i32 timeout, Signals stop_signal)
     if (pidfd_send_signal(_fd, static_cast<i32>(stop_signal), NULL, 0) == -1)
         throw std::runtime_error("Failed to send " + it->first + " to process: " + _name);
 
-    LOG_DEBUG("Sent " + it->first + " to process: " + _name);
+    LOG_INFO("Sent " + it->first + " to process: " + _name);
 
     _state = State::STOPPING;
 
@@ -149,7 +152,7 @@ void Process::onExit(i32 status)
 {
     switch (_state) {
     case State::STOPPING:
-        LOG_DEBUG("Process " + _name + " stopped with status " + std::to_string(WEXITSTATUS(status)));
+        LOG_DEBUG("Process " + _name + " was stopped with status " + std::to_string(WEXITSTATUS(status)));
         _state = State::STOPPED;
         _job.onStop(*this);
         break;
@@ -164,7 +167,7 @@ void Process::onExit(i32 status)
         _job.onExit(*this, WEXITSTATUS(status));
         break;
     default:
-        LOG_WARNING("Process " + _name + " stopped in a wierd state " + std::to_string(static_cast<int>(_state)));
+        LOG_ERROR("Process " + _name + " stopped in a wierd state " + std::to_string(static_cast<int>(_state)));
     }
 }
 

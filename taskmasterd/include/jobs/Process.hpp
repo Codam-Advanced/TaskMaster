@@ -1,7 +1,6 @@
 #pragma once
 
 #include "taskmasterd/include/jobs/Signal.hpp"
-#include <functional>
 #include <memory>
 #include <string>
 #include <unistd.h>
