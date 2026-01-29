@@ -103,7 +103,7 @@ void Job::stop()
 
     if (_state == State::STOPPING || _state == State::EMPTY)
         return;
-    
+
     _state = State::STOPPING;
 
     for (auto& proc : _processes)

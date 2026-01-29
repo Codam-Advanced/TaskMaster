@@ -72,14 +72,14 @@ public:
     /**
      * @brief Update the array of jobs
      * this method will remove and replace all nessecary _jobs
-     *  
+     *
      */
     void update();
 
     /**
      * @brief This function is called by a job object once it's stopped. The manager can handle how it likes
-     * 
-     * @param job_name 
+     *
+     * @param job_name
      */
     void onStop(const std::string job_name);
 
@@ -101,13 +101,13 @@ private:
 
     /**
      * @brief Helper functon to create a new job
-     * 
+     *
      */
     void createJob(const std::string& job_name);
 
-    JobMap       _jobs;
-    ConfigMap    _config;
-    std::string  _config_path;
+    JobMap      _jobs;
+    ConfigMap   _config;
+    std::string _config_path;
 };
 
 } // namespace taskmasterd

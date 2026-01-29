@@ -71,27 +71,34 @@ public:
     const JobConfig& getConfig() const { return _config; }
 
     /**
+     * @brief Get the current state
+     *
+     * @return State
+     */
+    State getState() const { return _state; }
+
+    /**
      * @brief Mark the job to be replaced
-     * 
+     *
      */
     void replace() { _state = State::REPLACE; }
 
     /**
      * @brief Should the job be replaced
-     * 
+     *
      * @return true if it should be replaced
      */
     bool replaced() { return _state == State::REPLACE; }
 
     /**
      * @brief Mark the job to be removed
-     * 
+     *
      */
     void remove() { _state = State::REMOVE; }
 
     /**
      * @brief Should the job be removed
-     * 
+     *
      * @return true if it should be removed
      */
     bool removed() { return _state == State::REMOVE; }
@@ -118,7 +125,6 @@ private:
      * @return boolean
      */
     bool allProcessesInState(Process::State state);
-
 
     /**
      * @brief Helper method to parse argument (argv, cmd)

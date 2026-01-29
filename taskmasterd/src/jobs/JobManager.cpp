@@ -1,6 +1,7 @@
 
 #include "taskmasterd/include/jobs/JobManager.hpp"
 #include "logger/include/Logger.hpp"
+#include "taskmasterd/include/core/EventManager.hpp"
 #include "taskmasterd/include/jobs/Job.hpp"
 #include "taskmasterd/include/jobs/JobConfig.hpp"
 #include <exception>
@@ -24,6 +25,16 @@ JobManager::JobManager(const std::string& config_path)
 JobManager::~JobManager()
 {
     kill();
+
+    // after we kill all jobs we should wait before we destory the object
+    for (auto it = _jobs.begin(); it != _jobs.end(); it++) {
+        if (it->second.getState() == Job::State::STOPPED || it->second.getState() == Job::State::EMPTY)
+            continue;
+        // continue to handle events so that the program doesn't get stuck
+        EventManager::getInstance().handleEvents();
+        update();
+        it = _jobs.begin();
+    }
 }
 
 void JobManager::start()
@@ -89,18 +100,15 @@ void JobManager::reload()
 
 void JobManager::update()
 {
-    for (auto it = _jobs.begin(); it != _jobs.end();)
-    {
+    for (auto it = _jobs.begin(); it != _jobs.end();) {
         const std::string name = it->first;
-        Job& job = it->second;
+        Job&              job  = it->second;
 
-        if (job.removed())
-        {
+        if (job.removed()) {
             it = _jobs.erase(it);
             continue;
         }
-        if (job.replaced())
-        {
+        if (job.replaced()) {
             it = _jobs.erase(it);
             createJob(name);
             continue;
