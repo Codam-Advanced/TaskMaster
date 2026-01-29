@@ -17,13 +17,12 @@ namespace taskmasterd
 struct JobConfig
 {
     static std::unordered_map<std::string, JobConfig> getJobConfigs(const std::string& filename);
-    
+
     /**
      * @brief A comparison operator overload to compare two configs. A default can be used since all members have the comparison operator
      */
     bool operator==(const JobConfig& obj) const = default;
     bool operator!=(const JobConfig& obj) const = default;
-
 
     enum class RestartPolicy
     {

@@ -11,7 +11,6 @@ namespace taskmasterd
 class Client : ipc::Socket // : public ProtoReader<proto::Command>
 {
 public:
-
     using CommandCallback = std::function<void(proto::Command)>;
 
     /**

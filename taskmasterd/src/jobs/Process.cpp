@@ -1,17 +1,17 @@
+#include "taskmasterd/include/jobs/Job.hpp"
 #include "taskmasterd/include/jobs/JobConfig.hpp"
 #include "taskmasterd/include/jobs/Signal.hpp"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <taskmasterd/include/jobs/Process.hpp>
-#include "taskmasterd/include/jobs/Job.hpp"
 
+#include <fcntl.h>
 #include <signal.h>
 #include <stdexcept>
 #include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <fcntl.h>
 
 #include <logger/include/Logger.hpp>
 #include <taskmasterd/include/core/EventManager.hpp>
@@ -42,12 +42,12 @@ void Process::start(const std::string& path, char* const* argv, char* const* env
     if (_pid == 0) {
         // Child process
         setpgid(0, _pgid); // If pgid is 0, pid of the child process is used as pgid
-        
-        if (!config.err->empty()){
+
+        if (!config.err->empty()) {
             LOG_DEBUG("Dupping stderr to path: " + config.err.value())
             dupPath(STDERR_FILENO, config.err.value());
         }
-        if (!config.out->empty()){
+        if (!config.out->empty()) {
             LOG_DEBUG("Dupping stdout to path: " + config.out.value())
             dupPath(STDOUT_FILENO, config.out.value());
         }
@@ -78,13 +78,11 @@ void Process::start(const std::string& path, char* const* argv, char* const* env
         throw std::runtime_error("Failed to open pidfd for process '" + _name + "': " + strerror(errno));
 
     EventManager::getInstance().registerEvent(*this, std::bind(&Process::onStateChange, this), nullptr);
-
 }
 
 void Process::stop(i32 timeout, Signals stop_signal)
 {
-    if (_state ==  Process::State::BACKOFF || _state == Process::State::EXITED)
-    {
+    if (_state == Process::State::BACKOFF || _state == Process::State::EXITED) {
         _state = Process::State::STOPPED;
         _job.onStop(*this);
         return;
@@ -94,10 +92,7 @@ void Process::stop(i32 timeout, Signals stop_signal)
     const JobConfig::SignalMap& sig_map = JobConfig::signals;
 
     // find the key from the value in the signal map
-    auto it = std::find_if(sig_map.begin(), sig_map.end(),
-    [stop_signal](const auto& pair) {
-        return pair.second == stop_signal;
-    });
+    auto it = std::find_if(sig_map.begin(), sig_map.end(), [stop_signal](const auto& pair) { return pair.second == stop_signal; });
 
     // send signal to pid fd with given stopsignal
     if (pidfd_send_signal(_fd, static_cast<i32>(stop_signal), NULL, 0) == -1)
@@ -129,7 +124,7 @@ void Process::kill()
 
 void Process::onStateChange()
 {
-    i32   status;
+    i32 status;
 
     pid_t result = waitpid(_pid, &status, 0);
     if (result == -1)
@@ -180,10 +175,9 @@ void Process::onForcedExit(i32 status)
 
 void Process::onStartTime()
 {
-    LOG_INFO("Process: "  + _name + " succesfully surpasses the start time");
+    LOG_INFO("Process: " + _name + " succesfully surpasses the start time");
     _state = State::RUNNING;
 }
-
 
 void Process::dupPath(i32 std_input, const std::string& path)
 {
