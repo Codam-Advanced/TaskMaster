@@ -15,7 +15,6 @@ Job::Job(const JobConfig& config, JobManager& manager)
     : _config(config)
     , _manager(manager)
     , _pgid(0)
-    , _stopped(config.numprocs)
 {
     parseArguments(config);
     parseEnviroment(config);
@@ -50,19 +49,15 @@ void Job::start()
     LOG_DEBUG("Start called called for process" + std::to_string(static_cast<i32>(_state)));
 
     switch (_state) {
-
     case State::STOPPING:
         restartProcesses();
         break;
-
     case State::STOPPED:
         restartProcesses();
         break;
-
     case State::EMPTY:
         startProcesses();
         break;
-
     default:
         break;
     }
@@ -93,48 +88,60 @@ void Job::startProcesses()
 
 void Job::restartProcesses()
 {
-    for (i32 i = 0; i < _config.numprocs; i++) {
+    for (auto& proc : _processes) {
 
-        _processes[i]->resetRestarts();
-        if (_processes[i]->getState() == Process::State::STOPPED)
-            _processes[i]->start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
+        proc->resetRestarts();
+        if (proc->getState() == Process::State::STOPPED)
+            proc->start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
     }
 }
 
 void Job::stop()
 {
-    if (_state == State::STOPPING || _state == State::STOPPED)
+    if (_state == State::STOPPED)
+        return _manager.onStop(_config.name);
+
+    if (_state == State::STOPPING || _state == State::EMPTY)
         return;
+    
+    _state = State::STOPPING;
 
     for (auto& proc : _processes)
         proc->stop(_config.stop_time, _config.stop_signal);
-
-    _state = State::STOPPING;
 }
 
+bool Job::allProcessesInState(Process::State state)
+{
+    for (auto& proc : _processes) {
+        if (proc->getState() != state)
+            return false;
+    }
+    return true;
+}
 
 void Job::onExit(Process& proc, i32 status_code)
 {
-    LOG_DEBUG("An process exited from job " + _config.name);
-    if (_config.restart_policy == JobConfig::RestartPolicy::NEVER) {
-        return;
-    }
     if (proc.getRestarts() == _config.start_retries) {
         LOG_WARNING("Process stopped max retries reached " + proc.getName());
         return;
     }
-    proc.addRestart();
 
-    if (_config.restart_policy == JobConfig::RestartPolicy::ALWAYS) {
+    switch (_config.restart_policy) {
+    case JobConfig::RestartPolicy::NEVER:
+        break;
+    case JobConfig::RestartPolicy::ALWAYS:
+        proc.addRestart();
         proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
-    } else if (_config.restart_policy == JobConfig::RestartPolicy::ON_FAILURE) {
+        break;
+    case JobConfig::RestartPolicy::ON_FAILURE:
+        proc.addRestart();
         for (auto& code : _config.exit_codes) {
-            if (code == status_code) {
-                // if the status code is known its not an unexpected exit
-                return;
-            }
+            // if the status code is known its not an unexpected exit
+            if (code == status_code)
+                break;
         }
         proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
+        break;
     }
 }
 
@@ -143,11 +150,11 @@ void Job::onStop(Process& proc)
     switch (_state) {
     case State::STARTING:
         proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
-        if (_stopped == 0)
+        if (allProcessesInState(Process::State::STARTING) || allProcessesInState(Process::State::RUNNING))
             _state = State::RUNNING;
         break;
     case State::STOPPING:
-        if (_stopped != _config.numprocs)
+        if (!allProcessesInState(Process::State::STOPPED))
             break;
         _state = State::STOPPED;
         _manager.onStop(_config.name);

@@ -22,6 +22,8 @@ public:
         RUNNING,  // the job is running all its procceses
         STOPPING, // the job is stopping all its procceses
         STOPPED,  // the job is stopped all its procceses
+        REPLACE,  // the job is marked to be replaced by another job with a different config
+        REMOVE,   // the job is marked to be removed from the job manager
     };
 
     /**
@@ -68,6 +70,32 @@ public:
      */
     const JobConfig& getConfig() const { return _config; }
 
+    /**
+     * @brief Mark the job to be replaced
+     * 
+     */
+    void replace() { _state = State::REPLACE; }
+
+    /**
+     * @brief Should the job be replaced
+     * 
+     * @return true if it should be replaced
+     */
+    bool replaced() { return _state == State::REPLACE; }
+
+    /**
+     * @brief Mark the job to be removed
+     * 
+     */
+    void remove() { _state = State::REMOVE; }
+
+    /**
+     * @brief Should the job be removed
+     * 
+     * @return true if it should be removed
+     */
+    bool removed() { return _state == State::REMOVE; }
+
     friend Process;
 
 private:
@@ -84,16 +112,13 @@ private:
     void restartProcesses();
 
     /**
-     * @brief Method to tell the job a proccess has been stopped
+     * @brief Helper method to check if all proccesses are in a certain state.
      *
+     * @param  Process::State state a process state
+     * @return boolean
      */
-    void processStopped() { _stopped++; }
-    
-    /**
-     * @brief Method to tell the job a proccess has started
-     *
-     */
-    void processStarted() { _stopped--; }
+    bool allProcessesInState(Process::State state);
+
 
     /**
      * @brief Helper method to parse argument (argv, cmd)
@@ -115,7 +140,6 @@ private:
 
     State                                 _state;
     pid_t                                 _pgid;
-    i32                                   _stopped;
     std::vector<std::unique_ptr<Process>> _processes;
 };
 } // namespace taskmasterd

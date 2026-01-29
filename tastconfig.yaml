@@ -20,8 +20,23 @@ jobs:
       ANSWER: 42
 
   sleepy:
-    cmd: "/usr/bin/sleep 4"
-    numprocs: 9
+    cmd: "/usr/bin/sleep 1"
+    numprocs: 10
+    umask: 077
+    workingdir: /tmp
+    autostart: true
+    autorestart: true
+    exitcodes: 0
+    startretries: 3
+    starttime: 5
+    stopsignal: QUIT
+    stoptime: 10
+    stdout: /tmp/vgsworker.stdout
+    stderr: /tmp/vgsworker.stderr
+
+  sleepy2:
+    cmd: "/usr/bin/sleep 10"
+    numprocs: 1
     umask: 077
     workingdir: /tmp
     autostart: true

@@ -22,7 +22,7 @@ public:
      * @param address The address to bind the server socket to.
      * @param backlog The maximum length of the queue of pending connections.
      */
-    Server(ipc::Socket::Type type, const ipc::Address& address, const std::string& config_path, i32 backlog = 5);
+    Server(ipc::Socket::Type type, const ipc::Address& address, JobManager& _manager, i32 backlog = 5);
     virtual ~Server();
 
     /**
@@ -43,6 +43,6 @@ public:
 
 private:
     Clients    _clients;
-    JobManager _manager;
+    JobManager& _manager;
 };
 } // namespace taskmasterd

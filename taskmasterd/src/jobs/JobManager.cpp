@@ -3,6 +3,8 @@
 #include "logger/include/Logger.hpp"
 #include "taskmasterd/include/jobs/Job.hpp"
 #include "taskmasterd/include/jobs/JobConfig.hpp"
+#include <exception>
+#include <iostream>
 #include <stdexcept>
 #include <tuple>
 #include <utility>
@@ -12,9 +14,9 @@ namespace taskmasterd
 JobManager::JobManager(const std::string& config_path)
     : _config_path(config_path)
 {
-    std::unordered_map<std::string, JobConfig> nodes = JobConfig::getJobConfigs(config_path);
+    _config = JobConfig::getJobConfigs(config_path);
 
-    for (const auto& [name, config] : nodes) {
+    for (const auto& [name, config] : _config) {
         _jobs.emplace(std::piecewise_construct, std::forward_as_tuple(name), std::forward_as_tuple(config, *this));
     }
 }
@@ -78,26 +80,46 @@ void JobManager::reload()
     // loop through the new config to add new jobs to the job manager
     for (auto& [name, config] : _config) {
         if (_jobs.find(name) == _jobs.end())
-            _jobs.emplace(std::piecewise_construct, std::forward_as_tuple(name), std::forward_as_tuple(config, *this));
+            createJob(name);
+    }
+
+    // update the _jobs map
+    update();
+}
+
+void JobManager::update()
+{
+    for (auto it = _jobs.begin(); it != _jobs.end();)
+    {
+        const std::string name = it->first;
+        Job& job = it->second;
+
+        if (job.removed())
+        {
+            it = _jobs.erase(it);
+            continue;
+        }
+        if (job.replaced())
+        {
+            it = _jobs.erase(it);
+            createJob(name);
+            continue;
+        }
+        it++;
     }
 }
 
-void JobManager::onStop(const std::string& job_name)
+void JobManager::onStop(const std::string job_name)
 {
-    const JobConfig& job_config = _config.at(job_name);
+    Job& job = _jobs.at(job_name);
 
-    // if the config is the same as the manager current config nothing extra needs to be done
-    if (job_config == _jobs.at(job_name).getConfig())
-        return;
+    // if the job is not in the config anymore we should shedule it to be removed
+    if (_config.find(job_name) == _config.end())
+        return job.remove();
 
-    // if job is not found anymore it has to be removed
-    if (_config.find(job_name) != _config.end())
-        return;
-
-    _jobs.erase(job_name);
-    _jobs.emplace(std::piecewise_construct, std::forward_as_tuple(job_name), std::forward_as_tuple(job_config, *this));
-    if (job_config.autostart)
-        _jobs.at(job_name).start();
+    // if the config is different then our job we should schedule it to be replaced
+    if (_config.at(job_name) != job.getConfig())
+        return job.replace();
 }
 
 Job& JobManager::findJob(const std::string& job_name)
@@ -108,6 +130,18 @@ Job& JobManager::findJob(const std::string& job_name)
         throw std::runtime_error("JobManager: Cannot find job: " + job_name);
 
     return it->second;
+}
+
+void JobManager::createJob(const std::string& job_name)
+{
+    auto map = _jobs.emplace(std::piecewise_construct, std::forward_as_tuple(job_name), std::forward_as_tuple(_config.at(job_name), *this));
+
+    // Was the job creation succesfull?
+    if (!map.second)
+        throw std::runtime_error("new Job :" + job_name + " Couldn't be created");
+
+    if (_config.at(job_name).autostart)
+        map.first->second.start();
 }
 
 } // namespace taskmasterd

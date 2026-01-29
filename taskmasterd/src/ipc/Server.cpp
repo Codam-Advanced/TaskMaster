@@ -1,4 +1,5 @@
 #include "proto/taskmaster.pb.h"
+#include "taskmasterd/include/jobs/JobManager.hpp"
 #include <taskmasterd/include/ipc/Server.hpp>
 
 #include <algorithm>
@@ -8,9 +9,9 @@
 
 namespace taskmasterd
 {
-Server::Server(Socket::Type type, const ipc::Address& address, const std::string& config_path, i32 backlog)
+Server::Server(Socket::Type type, const ipc::Address& address, JobManager& manager, i32 backlog)
     : Socket(type)
-    , _manager(config_path)
+    , _manager(manager)
 {
     this->bind(address);
     this->listen(backlog);
