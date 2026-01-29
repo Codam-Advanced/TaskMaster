@@ -3,10 +3,10 @@
 #include <csignal>
 
 #include <taskmasterd/include/core/EventManager.hpp>
+#include <taskmasterd/include/core/Globals.hpp>
 #include <taskmasterd/include/ipc/Server.hpp>
 #include <taskmasterd/include/jobs/Job.hpp>
 #include <taskmasterd/include/jobs/JobConfig.hpp>
-#include <taskmasterd/include/core/Globals.hpp>
 
 #ifndef PROGRAM_NAME
 #define PROGRAM_NAME "taskmasterd"
@@ -33,10 +33,12 @@ int main(int argc, char** argv)
     LOG_INFO("Starting " PROGRAM_NAME);
 
     try {
-        Server server(ipc::Socket::Type::UNIX, ipc::Address::UNIX("/tmp/taskmasterd.sock"), "./../tastconfig.yaml");
+        JobManager manager("./../tastconfig.yaml");
+        Server     server(ipc::Socket::Type::UNIX, ipc::Address::UNIX("/tmp/taskmasterd.sock"), manager);
 
         while (g_running) {
             EventManager::getInstance().handleEvents();
+            manager.update();
         }
 
         LOG_INFO("Shutting down " PROGRAM_NAME);

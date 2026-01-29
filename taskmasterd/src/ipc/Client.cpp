@@ -49,19 +49,15 @@ void Client::handleRead()
 
 void Client::handleWrite()
 {
-    try
-    {
+    try {
         bool doneWriting = _proto_writer.write(*this);
-        if (doneWriting)
-        {
+        if (doneWriting) {
             // Stop polling for writes and start polling for reads again
             EventManager::getInstance().unregisterEvent(*this);
             EventManager::getInstance().registerEvent(*this, std::bind(&Client::handleRead, this), nullptr);
             _proto_writer.clear();
         }
-    }
-    catch(const std::exception& e)
-    {
+    } catch (const std::exception& e) {
         LOG_ERROR("Error writing to client fd: " + std::to_string(_fd) + ": " + e.what())
         this->close();
         EventManager::getInstance().unregisterEvent(*this);

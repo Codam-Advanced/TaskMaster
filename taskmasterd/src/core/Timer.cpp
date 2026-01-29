@@ -56,7 +56,7 @@ void Timer::onExpire()
     }
 
     LOG_DEBUG("Timer expired " + std::to_string(expirations) + " times");
-    
+
     EventManager::getInstance().unregisterEvent(*this);
     _callback();
 }

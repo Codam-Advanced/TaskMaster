@@ -12,17 +12,19 @@ namespace taskmasterd
 {
 
 class Process;
+class JobManager;
 class Job
 {
 public:
     enum class State
     {
-        EMPTY,     // The first time job is created or the config has been reloaded
-        STARTING,  // the job is starting all its procceses
-        RUNNING,   // the job is running all its procceses
-        STOPPING,  // the job is stopping all its procceses
-        STOPPED,   // the job is stopped all its procceses
-        RELOADING, // the job is reloading its configuration file
+        EMPTY,    // The first time job is created or the config has been reloaded
+        STARTING, // the job is starting all its procceses
+        RUNNING,  // the job is running all its procceses
+        STOPPING, // the job is stopping all its procceses
+        STOPPED,  // the job is stopped all its procceses
+        REPLACE,  // the job is marked to be replaced by another job with a different config
+        REMOVE,   // the job is marked to be removed from the job manager
     };
 
     /**
@@ -30,7 +32,7 @@ public:
      *
      * @param config The job configuration.
      */
-    Job(const JobConfig& config);
+    Job(const JobConfig& config, JobManager& manager);
     virtual ~Job() = default;
 
     /**
@@ -49,20 +51,11 @@ public:
     void stop();
 
     /**
-     * @brief Reload the job with a new configurations.
-     *
-     * This method will stop all proccess and create new processes once all proccesses are stopped.
-     * This event will set a reloading state untill all processes are restarted.
-     */
-    void reload(const JobConfig& config);
-
-    /**
      * @brief function that is called by a process when it exited
      *
      * This method will handle any exit removing or auto restarting a new process
      */
     void onExit(Process&, i32 status_code);
-
 
     /**
      * @brief function that is called by a process when it exited
@@ -76,10 +69,35 @@ public:
      *
      * @return The job configuration.
      */
-    const JobConfig& getConfig() const
-    {
-        return _config;
-    }
+    const JobConfig& getConfig() const { return _config; }
+
+    /**
+     * @brief Mark the job to be replaced
+     *
+     */
+    void replace() { _state = State::REPLACE; }
+
+    /**
+     * @brief Should the job be replaced
+     *
+     * @return true if it should be replaced
+     */
+    bool replaced() { return _state == State::REPLACE; }
+
+    /**
+     * @brief Mark the job to be removed
+     *
+     */
+    void remove() { _state = State::REMOVE; }
+
+    /**
+     * @brief Should the job be removed
+     *
+     * @return true if it should be removed
+     */
+    bool removed() { return _state == State::REMOVE; }
+
+    friend Process;
 
     /**
      * @brief Get the state of a process at a specific index belonging to this Job.
@@ -110,6 +128,14 @@ private:
     void restartProcesses();
 
     /**
+     * @brief Helper method to check if all proccesses are in a certain state.
+     *
+     * @param  Process::State state a process state
+     * @return boolean
+     */
+    bool allProcessesInState(Process::State state);
+
+    /**
      * @brief Helper method to parse argument (argv, cmd)
      *
      */
@@ -122,13 +148,13 @@ private:
     void parseEnvironment(const JobConfig& config);
 
     JobConfig                _config;
+    JobManager&              _manager;
     std::vector<std::string> _args;
     std::vector<const char*> _argv;
     std::vector<const char*> _env;
 
     State                                 _state;
     pid_t                                 _pgid;
-    i32                                   _stopped;
     std::vector<std::unique_ptr<Process>> _processes;
 };
 

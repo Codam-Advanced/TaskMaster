@@ -13,6 +13,9 @@ class JobManager
 public:
     JobManager() = delete;
 
+    using ConfigMap = std::unordered_map<std::string, JobConfig>;
+    using JobMap    = std::unordered_map<std::string, Job>;
+
     /**
      * @brief Construct a job manager that accepts the config file path
      * it will parse and constuct the individual jobs
@@ -64,14 +67,9 @@ public:
     /**
      * @brief Reload the default configuration file
      * this will stop all jobs and start all jobs with the autostart config
+     *
      */
-    void reload();
-
-    /**
-     * @brief Reload the with a specific configuration file
-     * this will stop all jobs and start all jobs with the autostart config
-     */
-    proto::CommandResponse reload(const std::string& config_path);
+    proto::CommandResponse reload();
 
     /**
      * @brief Returns the status of all jobs inside of a CommandResponse.
@@ -82,6 +80,18 @@ public:
      * @brief Returns the status of a specific job inside of a CommandResponse.
      */
     proto::CommandResponse status(const std::string& job_name);
+
+    /**
+     * @brief Removes or replaces jobs marked as REMOVED or REPLACED 
+     */
+    void update();
+
+    /**
+     * @brief This function is called by a job object once it's stopped. The manager can handle how it likes
+     *
+     * @param job_name
+     */
+    void onStop(const std::string job_name);
 
 private:
     /**
@@ -94,13 +104,14 @@ private:
     Job& findJob(const std::string& job_name);
 
     /**
-     * @brief Helper function to rebuild all jobs in a map with a specific config
+     * @brief Helper functon to create a new job
      *
      */
-    void reloadJobs(const std::string& config_path);
+    void createJob(const std::string& job_name);
 
-    std::unordered_map<std::string, Job> _jobs;
-    std::string                          _config;
+    JobMap      _jobs;
+    ConfigMap   _config;
+    std::string _config_path;
 };
 
 } // namespace taskmasterd

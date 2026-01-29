@@ -1,7 +1,6 @@
 #pragma once
 
 #include "taskmasterd/include/jobs/Signal.hpp"
-#include <functional>
 #include <memory>
 #include <string>
 #include <unistd.h>
@@ -118,6 +117,6 @@ private:
     i32         _restarts;
     Job&        _job;
 
-    std::unique_ptr<Timer>             _timer;
+    std::unique_ptr<Timer> _timer;
 };
 } // namespace taskmasterd

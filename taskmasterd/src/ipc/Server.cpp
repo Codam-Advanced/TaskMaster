@@ -1,4 +1,5 @@
 #include "proto/taskmaster.pb.h"
+#include "taskmasterd/include/jobs/JobManager.hpp"
 #include <taskmasterd/include/ipc/Server.hpp>
 
 #include <algorithm>
@@ -15,9 +16,9 @@ If you wish to see all jobs, request STATUS with no arguments."
 
 namespace taskmasterd
 {
-Server::Server(Socket::Type type, const ipc::Address& address, const std::string& config_path, i32 backlog)
+Server::Server(Socket::Type type, const ipc::Address& address, JobManager& manager, i32 backlog)
     : Socket(type)
-    , _manager(config_path)
+    , _manager(manager)
 {
     this->bind(address);
     this->listen(backlog);
@@ -25,6 +26,7 @@ Server::Server(Socket::Type type, const ipc::Address& address, const std::string
     EventManager::getInstance().registerEvent(*this, std::bind(&Server::onAccept, this), nullptr);
 
     LOG_INFO("Server listening on fd: " + std::to_string(_fd));
+    _manager.start();
 }
 
 Server::~Server()
@@ -128,7 +130,7 @@ proto::CommandResponse Server::onCommand(proto::Command cmd)
             return _manager.status(cmd.args(0));
         return _manager.status();
     case proto::CommandType::RELOAD:
-        return _manager.reload(cmd.args(0));
+        return _manager.reload();
     case proto::CommandType::TERMINATE:
         g_running = false;
 

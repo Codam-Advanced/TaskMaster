@@ -23,7 +23,7 @@ public:
      * @param address The address to bind the server socket to.
      * @param backlog The maximum length of the queue of pending connections.
      */
-    Server(ipc::Socket::Type type, const ipc::Address& address, const std::string& config_path, i32 backlog = 5);
+    Server(ipc::Socket::Type type, const ipc::Address& address, JobManager& _manager, i32 backlog = 5);
     virtual ~Server();
 
     /**
@@ -43,8 +43,6 @@ public:
     proto::CommandResponse onCommand(proto::Command cmd);
 
 private:
-    Clients    _clients;
-    JobManager _manager;
 
     /**
      * @brief Parses the given command's argument count depending on the set command type.
@@ -52,5 +50,7 @@ private:
      * @return nullopt on passing parse, a CommandResponse on error.
      */
     std::optional<proto::CommandResponse> parseCommand(const proto::Command& cmd);
+    Clients     _clients;
+    JobManager& _manager;
 };
 } // namespace taskmasterd
