@@ -13,7 +13,7 @@ namespace taskmasterd
 class Server : public ipc::Socket
 {
 public:
-    using Clients = std::vector<std::unique_ptr<Client>>;
+    using Clients   = std::vector<std::unique_ptr<Client>>;
     using ProtoArgs = google::protobuf::RepeatedPtrField<std::string>;
 
     /**
@@ -36,21 +36,20 @@ public:
 
     /**
      * @brief This function is called by the client to send its received command to the server
-     * 
+     *
      * It is responsible to parse the command and give the result to specific job command through the job manager
      * @param cmd The proto command that the job manager should handle.
      */
     proto::CommandResponse onCommand(proto::Command cmd);
 
 private:
-
     /**
      * @brief Parses the given command's argument count depending on the set command type.
-     * 
+     *
      * @return nullopt on passing parse, a CommandResponse on error.
      */
     std::optional<proto::CommandResponse> parseCommand(const proto::Command& cmd);
-    Clients     _clients;
-    JobManager& _manager;
+    Clients                               _clients;
+    JobManager&                           _manager;
 };
 } // namespace taskmasterd

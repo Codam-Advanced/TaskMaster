@@ -195,7 +195,7 @@ static std::string formatColumn(std::string name, bool should_concatenate, u32 l
         name = name.substr(0, 18) + "..";
     name.insert(0, left_width, ' ');
     name.insert(name.length(), right_width, ' ');
-    stream  << name << "|";
+    stream << name << "|";
     return stream.str();
 }
 
@@ -208,7 +208,6 @@ static void setFillerWidth(const std::string& name, u32& left_width, u32& right_
     LOG_DEBUG("Name: " + name + " size: " + std::to_string(name.size()));
     LOG_DEBUG("left_width: " + std::to_string(left_width));
     LOG_DEBUG("right_width: " + std::to_string(right_width));
-
 }
 
 std::ostream& operator<<(std::ostream& os, const Job& job)

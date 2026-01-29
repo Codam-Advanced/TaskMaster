@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include <proto/taskmaster.pb.h>
+#include <string>
 #include <taskmasterd/include/jobs/Job.hpp>
 #include <unordered_map>
 
@@ -82,7 +82,7 @@ public:
     proto::CommandResponse status(const std::string& job_name);
 
     /**
-     * @brief Removes or replaces jobs marked as REMOVED or REPLACED 
+     * @brief Removes or replaces jobs marked as REMOVED or REPLACED
      */
     void update();
 

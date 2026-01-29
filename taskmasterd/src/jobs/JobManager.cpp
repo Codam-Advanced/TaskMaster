@@ -50,7 +50,7 @@ void JobManager::start()
 proto::CommandResponse JobManager::start(const std::string& job_name)
 {
     proto::CommandResponse res;
-    Job& job = findJob(job_name);
+    Job&                   job = findJob(job_name);
 
     job.start();
     res.set_status(proto::CommandStatus::OK);
@@ -61,7 +61,7 @@ proto::CommandResponse JobManager::start(const std::string& job_name)
 proto::CommandResponse JobManager::stop(const std::string& job_name)
 {
     proto::CommandResponse res;
-    Job& job = findJob(job_name);
+    Job&                   job = findJob(job_name);
 
     job.stop();
     res.set_status(proto::CommandStatus::OK);
@@ -79,7 +79,7 @@ void JobManager::kill()
 proto::CommandResponse JobManager::restart(const std::string& job_name)
 {
     proto::CommandResponse res;
-    Job& job = findJob(job_name);
+    Job&                   job = findJob(job_name);
 
     job.stop();
     job.start();

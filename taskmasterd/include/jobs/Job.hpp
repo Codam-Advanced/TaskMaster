@@ -1,8 +1,8 @@
 #pragma once
 
+#include <iostream>
 #include <memory>
 #include <unistd.h>
-#include <iostream>
 #include <vector>
 
 #include <taskmasterd/include/jobs/JobConfig.hpp>
