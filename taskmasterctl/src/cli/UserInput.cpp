@@ -2,6 +2,9 @@
 #include <taskmasterctl/include/cli/UserInput.hpp>
 #include <utils/include/utils.hpp>
 
+#include <readline/history.h>
+#include <readline/readline.h>
+
 #include <iostream>
 #include <optional>
 
@@ -80,12 +83,17 @@ static std::optional<proto::Command> parseInput(std::string& input)
 static std::string getUserInput()
 {
     std::string input;
+    char*       line;
 
-    std::cout << PROGRAM_NAME << ": ";
-    if (!std::getline(std::cin, input)) {
-        LOG_DEBUG("getline failed, exiting")
+    line = readline(PROGRAM_NAME ": ");
+    if (!line)
         exit(0);
-    }
+
+    if (strlen(line) > 0)
+        add_history(line);
+
+    input = line;
+    free(line);
 
     return input;
 }

@@ -20,14 +20,16 @@ target_compile_options(${EXECUTABLE_NAME} PRIVATE ${COMPILE_OPTIONS})
 # Enable fsanitize:
 # target_link_options(${EXECUTABLE_NAME} PRIVATE -fsanitize=address)
 
-# Link to the needed libs
-target_link_libraries(${EXECUTABLE_NAME} PRIVATE logger utils ipc)
+set(READLINE_INCLUDE_DIR "/usr/include/readline")
 
-# add executable sources
+# Link to the needed libs
+target_link_libraries(${EXECUTABLE_NAME} PRIVATE logger utils ipc readline)
+
+# Add executable sources
 target_sources(${EXECUTABLE_NAME} PRIVATE ${SOURCES})
 
-# include header directory
-target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+# Include header directories
+target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/.. ${READLINE_INCLUDE_DIR})
 
 # the PRIVATE keyword means that the target source and include directories will
 # only be used for this target and not for any targets that link to it.
