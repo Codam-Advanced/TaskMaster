@@ -1,9 +1,11 @@
 #include <iostream>
+#include <thread>
 #include <ipc/include/FileDescriptor.hpp>
 #include <logger/include/Logger.hpp>
 #include <proto/taskmaster.pb.h>
 #include <taskmasterctl/include/cli/UserInput.hpp>
 #include <taskmasterctl/include/ipc/Client.hpp>
+#include <taskmasterctl/include/ipc/CheckSocketState.hpp>
 
 #include <readline/readline.h>
 
@@ -52,13 +54,24 @@ static char** completer(const char* text, int start, int end)
     return rl_completion_matches(text, completer_generator);
 }
 
+static void initializeReadline()
+{
+    rl_attempted_completion_function = &completer;
+    rl_getc_function = std::getc;
+    rl_catch_signals = 0;
+}
+
 int main()
 {
     Logger::LogInterface::Initialize(PROGRAM_NAME, Logger::LogLevel::Debug, true);
-    rl_attempted_completion_function = &completer;
+    taskmasterctl::g_exitChecker = false;
+
+    initializeReadline();
 
     try {
         ipc::Socket socket = taskmasterctl::connectToDaemon();
+        std::thread socketChecker (&taskmasterctl::checkSocketState, std::ref(socket));
+
         while (true) {
             try {
                 proto::Command command = taskmasterctl::getCommandFromUser();
@@ -66,6 +79,8 @@ int main()
                 taskmasterctl::sendCommandToDaemon(socket, command);
                 taskmasterctl::awaitDaemonResponse(socket);
             } catch (const std::exception& e) {
+                taskmasterctl::g_exitChecker = true;
+                socketChecker.join();
                 LOG_ERROR(e.what())
                 return 1;
             }
