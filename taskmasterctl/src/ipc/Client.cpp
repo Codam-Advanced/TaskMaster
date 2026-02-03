@@ -59,6 +59,15 @@ void awaitDaemonResponse(ipc::Socket& socket)
         if (response.message().size() != 0)
             LOG_ERROR(response.message())
         break;
+    case proto::CommandStatus::TYPE_ERROR:
+        if (response.message().size() != 0)
+            LOG_ERROR(response.message())
+        break;
+    case proto::CommandStatus::TOO_MANY_ARGUMENTS:
+    case proto::CommandStatus::ARGUMENT_ERROR:
+        if (response.message().size() != 0)
+            LOG_WARNING(response.message())
+        break;
     default:
         throw std::runtime_error("Received an invalid response status");
         break;
