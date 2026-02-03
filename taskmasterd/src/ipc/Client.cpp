@@ -42,8 +42,8 @@ void Client::handleRead()
         }
     } catch (const std::exception& e) {
         LOG_ERROR("Error reading from client fd " + std::to_string(_fd) + ": " + e.what());
-        this->close();
         EventManager::getInstance().unregisterEvent(*this);
+        this->close();
     }
 }
 
@@ -59,8 +59,8 @@ void Client::handleWrite()
         }
     } catch (const std::exception& e) {
         LOG_ERROR("Error writing to client fd: " + std::to_string(_fd) + ": " + e.what())
-        this->close();
         EventManager::getInstance().unregisterEvent(*this);
+        this->close();
     }
 }
 
