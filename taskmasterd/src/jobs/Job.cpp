@@ -205,9 +205,6 @@ static void setFillerWidth(const std::string& name, u32& left_width, u32& right_
 
     left_width  = std::max(1.0f, std::floor(float(max_size - name.size()) / 2) + 1);
     right_width = std::max(1.0f, std::ceil(float(max_size - name.size()) / 2) + 1);
-    LOG_DEBUG("Name: " + name + " size: " + std::to_string(name.size()));
-    LOG_DEBUG("left_width: " + std::to_string(left_width));
-    LOG_DEBUG("right_width: " + std::to_string(right_width));
 }
 
 std::ostream& operator<<(std::ostream& os, const Job& job)
