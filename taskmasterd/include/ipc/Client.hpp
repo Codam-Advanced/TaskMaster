@@ -22,7 +22,7 @@ public:
     virtual ~Client();
 
     void handleRead();
-    void handleWrite();
+    void handleWrite(proto::Command command);
 
     /**
      * @brief Handle a complete protobuf Command message.

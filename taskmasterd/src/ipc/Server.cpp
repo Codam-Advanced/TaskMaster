@@ -2,8 +2,6 @@
 #include "taskmasterd/include/jobs/JobManager.hpp"
 #include <taskmasterd/include/ipc/Server.hpp>
 
-#include <algorithm>
-
 #include <logger/include/Logger.hpp>
 #include <taskmasterd/include/core/EventManager.hpp>
 
@@ -132,8 +130,6 @@ proto::CommandResponse Server::onCommand(proto::Command cmd)
     case proto::CommandType::RELOAD:
         return _manager.reload();
     case proto::CommandType::TERMINATE:
-        g_running = false;
-
         response.set_status(proto::CommandStatus::OK);
         response.set_message("Successfully started the termination sequence");
         return response;

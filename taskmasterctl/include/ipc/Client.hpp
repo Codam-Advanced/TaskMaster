@@ -10,6 +10,9 @@ ipc::Socket connectToDaemon();
 
 void sendCommandToDaemon(ipc::Socket& socket, proto::Command& command);
 
-void awaitDaemonResponse(ipc::Socket& socket);
+/**
+ * @return True if ctl should exit after the received response
+ */
+bool awaitDaemonResponse(ipc::Socket& socket, proto::Command& command);
 
 } // namespace taskmasterctl

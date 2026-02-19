@@ -1,3 +1,4 @@
+#include <taskmasterd/include/core/Globals.hpp>
 #include <taskmasterd/include/ipc/Client.hpp>
 
 #include <logger/include/Logger.hpp>
@@ -47,7 +48,7 @@ void Client::handleRead()
     }
 }
 
-void Client::handleWrite()
+void Client::handleWrite(proto::Command command)
 {
     try {
         bool doneWriting = _proto_writer.write(*this);
@@ -56,6 +57,9 @@ void Client::handleWrite()
             EventManager::getInstance().unregisterEvent(*this);
             EventManager::getInstance().registerEvent(*this, std::bind(&Client::handleRead, this), nullptr);
             _proto_writer.clear();
+
+            if (command.type() == proto::CommandType::TERMINATE)
+                g_running = false;
         }
     } catch (const std::exception& e) {
         LOG_ERROR("Error writing to client fd: " + std::to_string(_fd) + ": " + e.what())
@@ -78,6 +82,7 @@ void Client::handleMessage(proto::Command command)
 
     // Get ready to send the command response
     _proto_writer.init(response);
-    EventManager::getInstance().registerEvent(*this, nullptr, std::bind(&Client::handleWrite, this));
+
+    EventManager::getInstance().registerEvent(*this, nullptr, std::bind(&Client::handleWrite, this, command));
 }
 } // namespace taskmasterd
