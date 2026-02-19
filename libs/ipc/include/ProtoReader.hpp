@@ -5,10 +5,12 @@
 #include <optional>
 #include <sys/socket.h>
 #include <vector>
+#include <string>
 
 #include <ipc/include/FileDescriptor.hpp>
 #include <proto/taskmaster.pb.h>
 #include <utils/include/utils.hpp>
+#include <logger/include/Logger.hpp>
 
 namespace ipc
 {
@@ -41,6 +43,7 @@ public:
                 i32 message_size;
                 std::memcpy(&message_size, _buffer.data(), sizeof(i32));
                 _message_size = ntohl(message_size);
+                LOG_DEBUG("Successfully received a message size of: " + std::to_string(_message_size.value()) + " bytes");
             }
 
             if (_message_size.has_value() && _buffer.size() >= sizeof(i32) + _message_size.value()) {
