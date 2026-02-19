@@ -138,12 +138,7 @@ proto::CommandResponse Server::onCommand(proto::Command cmd)
         response.set_message("Successfully started the termination sequence");
         return response;
     default:
-        std::string err_msg("Command type " + std::to_string(static_cast<i32>(cmd.type())) + " Not supported ");
-
-        response.set_status(proto::CommandStatus::TYPE_ERROR);
-        response.set_message(err_msg);
-        LOG_WARNING(err_msg);
-        return response;
+        std::unreachable();
     }
 }
 } // namespace taskmasterd
