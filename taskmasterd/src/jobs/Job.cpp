@@ -1,7 +1,9 @@
 #include "logger/include/Logger.hpp"
 #include "taskmasterd/include/jobs/JobConfig.hpp"
 #include "taskmasterd/include/jobs/Process.hpp"
+#include <algorithm>
 #include <bits/stdc++.h>
+#include <cmath>
 #include <memory>
 #include <string>
 #include <taskmasterd/include/core/EventManager.hpp>
@@ -17,7 +19,7 @@ Job::Job(const JobConfig& config, JobManager& manager)
     , _pgid(0)
 {
     parseArguments(config);
-    parseEnviroment(config);
+    parseEnvironment(config);
 
     _state = State::EMPTY;
 }
@@ -33,7 +35,7 @@ void Job::parseArguments(const JobConfig& config)
     _argv.push_back(nullptr);
 }
 
-void Job::parseEnviroment(const JobConfig& config)
+void Job::parseEnvironment(const JobConfig& config)
 {
 
     _env.reserve(config.env.size() + 1);
@@ -143,6 +145,123 @@ void Job::onExit(Process& proc, i32 status_code)
         proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
         break;
     }
+}
+
+static char const* processStateEnumToString(Process::State state)
+{
+    switch (state) {
+    case Process::State::BACKOFF:
+        return "BACKOFF";
+    case Process::State::EXITED:
+        return "EXITED";
+    case Process::State::FATAL:
+        return "FATAL";
+    case Process::State::RUNNING:
+        return "RUNNING";
+    case Process::State::STARTING:
+        return "STARTING";
+    case Process::State::STOPPED:
+        return "STOPPED";
+    case Process::State::STOPPING:
+        return "STOPPING";
+    default:
+        return "UNKNOWN";
+    }
+}
+
+static char const* jobStateEnumToString(Job::State state)
+{
+    switch (state) {
+    case Job::State::EMPTY:
+        return "EMPTY";
+    case Job::State::STARTING:
+        return "STARTING";
+    case Job::State::RUNNING:
+        return "RUNNING";
+    case Job::State::STOPPING:
+        return "STOPPING";
+    case Job::State::STOPPED:
+        return "STOPPED";
+    default:
+        return "UNKNOWN";
+    }
+}
+
+static std::string formatColumn(std::string name, bool should_concatenate, u32 left_width, u32 right_width)
+{
+    std::stringstream stream;
+
+    if (should_concatenate)
+        name = name.substr(0, 18) + "..";
+    name.insert(0, left_width, ' ');
+    name.insert(name.length(), right_width, ' ');
+    stream << name << "|";
+    return stream.str();
+}
+
+static void setFillerWidth(const std::string& name, u32& left_width, u32& right_width)
+{
+    const u32 max_size = 20;
+
+    left_width  = std::max(1.0f, std::floor(float(max_size - name.size()) / 2) + 1);
+    right_width = std::max(1.0f, std::ceil(float(max_size - name.size()) / 2) + 1);
+}
+
+std::ostream& operator<<(std::ostream& os, const Job& job)
+{
+    const u32   max_size      = 20;
+    const u32   process_count = job.getProcessCount();
+    std::string name          = job.getConfig().name;
+    char const* jobStateStr;
+    char const* processStateStr;
+    u32         left_width;
+    u32         right_width;
+
+    os << "┌──────────────────────┬──────────────────────┬──────────────────────┬──────────────────────┐\n";
+    os << "│       Job Name:      │     Job Status:      │    Proccess Name:    │   Process Status:    │\n";
+    os << "├──────────────────────┼──────────────────────┼──────────────────────┼──────────────────────┤\n";
+
+    // Start the entry
+    os << "|";
+
+    // Job name:
+    setFillerWidth(name, left_width, right_width);
+    os << formatColumn(name, name.size() > max_size, left_width, right_width);
+
+    jobStateStr = jobStateEnumToString(job.getState());
+    setFillerWidth(jobStateStr, left_width, right_width);
+    os << formatColumn(jobStateStr, strlen(jobStateStr) > max_size, left_width, right_width);
+
+    // Start next line, leaving the proccess name and status empty
+    os << "                      |                      |\n";
+
+    // Start proccess info printing
+    os << "├──────────────────────┼──────────────────────┼──────────────────────┼──────────────────────┤\n";
+    // Insert the state of every process in the stream:
+    for (u32 i = 0; i < process_count; i++) {
+        const std::unique_ptr<Process>& current_process = job.getProcess(i);
+        Process::State                  processState    = current_process->getState();
+
+        // Start the entry, leave the job name and status empty
+        os << "|                      |                      |";
+
+        // Insert the name
+        name = current_process->getName();
+        setFillerWidth(name, left_width, right_width);
+        os << formatColumn(name, name.size() > max_size, left_width, right_width);
+
+        // Insert process state
+        processStateStr = processStateEnumToString(processState);
+        setFillerWidth(processStateStr, left_width, right_width);
+        os << formatColumn(processStateStr, strlen(processStateStr) > max_size, left_width, right_width);
+
+        // Start next line
+        os << "\n";
+    }
+
+    os << "└──────────────────────┴──────────────────────┴──────────────────────┴──────────────────────┘\n";
+
+    return os;
 }
 
 void Job::onStop(Process& proc)

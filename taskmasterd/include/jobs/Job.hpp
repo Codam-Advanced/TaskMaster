@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <memory>
 #include <unistd.h>
 #include <vector>
@@ -71,13 +72,6 @@ public:
     const JobConfig& getConfig() const { return _config; }
 
     /**
-     * @brief Get the current state
-     *
-     * @return State
-     */
-    State getState() const { return _state; }
-
-    /**
      * @brief Mark the job to be replaced
      *
      */
@@ -104,6 +98,21 @@ public:
     bool removed() { return _state == State::REMOVE; }
 
     friend Process;
+
+    /**
+     * @brief Get the state of a process at a specific index belonging to this Job.
+     */
+    const std::unique_ptr<Process>& getProcess(const u32 index) const { return _processes.at(index); }
+
+    /**
+     * @brief Get the amount of processes belonging to this Job.
+     */
+    u32 getProcessCount() const { return _processes.size(); }
+
+    /**
+     * @brief Get the state of this job.
+     */
+    State getState() const { return _state; }
 
 private:
     /**
@@ -133,10 +142,10 @@ private:
     void parseArguments(const JobConfig& config);
 
     /**
-     * @brief Helper method to parse Parse enviroment variables
+     * @brief Helper method to parse Parse environment variables
      *
      */
-    void parseEnviroment(const JobConfig& config);
+    void parseEnvironment(const JobConfig& config);
 
     JobConfig                _config;
     JobManager&              _manager;
@@ -148,4 +157,7 @@ private:
     pid_t                                 _pgid;
     std::vector<std::unique_ptr<Process>> _processes;
 };
+
+std::ostream& operator<<(std::ostream& os, const Job& job);
+
 } // namespace taskmasterd

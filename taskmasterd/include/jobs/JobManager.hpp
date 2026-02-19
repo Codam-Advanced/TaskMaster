@@ -1,5 +1,6 @@
 #pragma once
 
+#include <proto/taskmaster.pb.h>
 #include <string>
 #include <taskmasterd/include/jobs/Job.hpp>
 #include <unordered_map>
@@ -38,7 +39,7 @@ public:
      * @param job_name
      * @throw std::runtime_error if the job cannot be found.
      */
-    void start(const std::string& job_name);
+    proto::CommandResponse start(const std::string& job_name);
 
     /**
      * @brief Stop a specific program specified by its name
@@ -46,7 +47,7 @@ public:
      * @param job_name
      * @throw std::runtime_error if the job cannot be found.
      */
-    void stop(const std::string& job_name);
+    proto::CommandResponse stop(const std::string& job_name);
 
     /**
      * @brief Stop all programs as soon as possible this may be used
@@ -61,18 +62,27 @@ public:
      * @param job_name
      * @throw std::runtime_error if the job cannot be found.
      */
-    void restart(const std::string& job_name);
+    proto::CommandResponse restart(const std::string& job_name);
 
     /**
      * @brief Reload the default configuration file
      * this will stop all jobs and start all jobs with the autostart config
+     *
      */
-    void reload();
+    proto::CommandResponse reload();
 
     /**
-     * @brief Update the array of jobs
-     * this method will remove and replace all nessecary _jobs
-     *
+     * @brief Returns the status of all jobs inside of a CommandResponse.
+     */
+    proto::CommandResponse status();
+
+    /**
+     * @brief Returns the status of a specific job inside of a CommandResponse.
+     */
+    proto::CommandResponse status(const std::string& job_name);
+
+    /**
+     * @brief Removes or replaces jobs marked as REMOVED or REPLACED
      */
     void update();
 
@@ -92,12 +102,6 @@ private:
      * @throw std::runtime_error if the job cannot be found.
      */
     Job& findJob(const std::string& job_name);
-
-    /**
-     * @brief Helper function to rebuild all jobs in a map with a specific config
-     *
-     */
-    void reloadJobs(const std::string& config_path);
 
     /**
      * @brief Helper functon to create a new job

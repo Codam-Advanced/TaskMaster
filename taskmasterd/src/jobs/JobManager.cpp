@@ -47,18 +47,50 @@ void JobManager::start()
     }
 }
 
-void JobManager::start(const std::string& job_name)
+proto::CommandResponse JobManager::start(const std::string& job_name)
 {
-    Job& job = findJob(job_name);
+    proto::CommandResponse res;
+    try {
+        Job&                   job = findJob(job_name);
 
-    job.start();
+        try {
+            job.start();
+            res.set_status(proto::CommandStatus::OK);
+            res.set_message("Successfully put job " + job_name + " in starting state.");
+            return res;
+        } catch(const std::exception& e) {
+            res.set_status(proto::CommandStatus::ERROR);
+            res.set_message(std::string("Internal daemon error: ") + e.what());
+            return res;
+        }
+    } catch(const std::exception& e) {
+        res.set_status(proto::CommandStatus::ARGUMENT_ERROR);
+        res.set_message("Invalid argument: '" + job_name + "' cannot find job");
+        return res;
+    }
 }
 
-void JobManager::stop(const std::string& job_name)
+proto::CommandResponse JobManager::stop(const std::string& job_name)
 {
-    Job& job = findJob(job_name);
+    proto::CommandResponse res;
+    try {
+        Job&                   job = findJob(job_name);
 
-    job.stop();
+        try {
+            job.stop();
+            res.set_status(proto::CommandStatus::OK);
+            res.set_message("Successfully put job " + job_name + " in stopping state.");
+            return res;
+        } catch(const std::exception& e) {
+            res.set_status(proto::CommandStatus::ERROR);
+            res.set_message(std::string("Internal daemon error: ") + e.what());
+            return res;
+        }
+    } catch(const std::exception& e) {
+        res.set_status(proto::CommandStatus::ARGUMENT_ERROR);
+        res.set_message("Invalid argument: '" + job_name + "' cannot find job");
+        return res;
+    }
 }
 
 void JobManager::kill()
@@ -68,15 +100,30 @@ void JobManager::kill()
     }
 }
 
-void JobManager::restart(const std::string& job_name)
+proto::CommandResponse JobManager::restart(const std::string& job_name)
 {
-    Job& job = findJob(job_name);
-
-    job.stop();
-    job.start();
+    proto::CommandResponse res;
+    try {
+        Job&                   job = findJob(job_name);
+        try {
+            job.stop();
+            job.start();
+            res.set_status(proto::CommandStatus::OK);
+            res.set_message("Successfully put job " + job_name + " in restarting state.");
+            return res;
+        } catch(const std::exception& e) {
+            res.set_status(proto::CommandStatus::ERROR);
+            res.set_message(std::string("Internal daemon error: ") + e.what());
+            return res;
+        }
+    } catch(const std::exception& e) {
+        res.set_status(proto::CommandStatus::ARGUMENT_ERROR);
+        res.set_message("Invalid argument: '" + job_name + "' cannot find job");
+        return res;
+    }
 }
 
-void JobManager::reload()
+proto::CommandResponse JobManager::reload()
 {
     _config = JobConfig::getJobConfigs(_config_path);
 
@@ -96,6 +143,39 @@ void JobManager::reload()
 
     // update the _jobs map
     update();
+
+    proto::CommandResponse res;
+
+    start();
+    res.set_status(proto::CommandStatus::OK);
+    res.set_message("Successfully started a reload of the config file");
+    return res;
+}
+
+proto::CommandResponse JobManager::status()
+{
+    proto::CommandResponse res;
+    std::stringstream      msg;
+
+    res.set_status(proto::CommandStatus::OK);
+    for (auto& [_, job] : _jobs) {
+        msg << job;
+        msg << "\n";
+    }
+    res.set_message(msg.str());
+    return res;
+}
+
+proto::CommandResponse JobManager::status(const std::string& job_name)
+{
+    proto::CommandResponse res;
+    std::stringstream      msg;
+    Job&                   job = findJob(job_name);
+
+    res.set_status(proto::CommandStatus::OK);
+    msg << job;
+    res.set_message(msg.str());
+    return res;
 }
 
 void JobManager::update()

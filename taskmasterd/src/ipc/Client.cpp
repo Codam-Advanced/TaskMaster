@@ -42,8 +42,8 @@ void Client::handleRead()
         }
     } catch (const std::exception& e) {
         LOG_ERROR("Error reading from client fd " + std::to_string(_fd) + ": " + e.what());
-        this->close();
         EventManager::getInstance().unregisterEvent(*this);
+        this->close();
     }
 }
 
@@ -59,8 +59,8 @@ void Client::handleWrite()
         }
     } catch (const std::exception& e) {
         LOG_ERROR("Error writing to client fd: " + std::to_string(_fd) + ": " + e.what())
-        this->close();
         EventManager::getInstance().unregisterEvent(*this);
+        this->close();
     }
 }
 
@@ -69,17 +69,14 @@ void Client::handleMessage(proto::Command command)
     // Handle the received command
     LOG_INFO("Received command from client fd " + std::to_string(_fd) + ": " + command.DebugString());
 
-    // Stop reading new commands, we need to process write the response out first
+    // Stop reading new commands, we need to process the current command and write the response out first
     EventManager::getInstance().unregisterEvent(*this);
 
     // call the server callback
-    // TODO: catch exceptions and return the nessesary response status
-    _on_command(command);
+    // TODO: catch exceptions and return the necessary response status
+    proto::CommandResponse response = _on_command(command);
 
     // Get ready to send the command response
-    proto::CommandResponse response;
-    response.set_status(proto::CommandStatus::OK);
-    response.set_message("CommandType: " + std::to_string(static_cast<u32>(command.type())) + " arrived successfully");
     _proto_writer.init(response);
     EventManager::getInstance().registerEvent(*this, nullptr, std::bind(&Client::handleWrite, this));
 }
