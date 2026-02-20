@@ -77,11 +77,21 @@ void Client::handleMessage(proto::Command command)
     // Stop reading new commands, we need to process the current command and write the response out first
     EventManager::getInstance().unregisterEvent(*this);
 
-    // call the server callback
-    proto::CommandResponse response = _server.onCommand(command);
+    try {
+        // call the server callback
+        proto::CommandResponse response = _server.onCommand(command);
 
-    // Get ready to send the command response
-    _proto_writer.init(response);
+        // Get ready to send the command response
+        _proto_writer.init(response);
+    } catch (const std::exception& e) {
+        _proto_writer.clear();
+
+        proto::CommandResponse err_response;
+
+        err_response.set_status(proto::CommandStatus::ERROR);
+        err_response.set_message(std::string("Internal daemon error: ") + e.what());
+        _proto_writer.init(err_response);
+    }
 
     EventManager::getInstance().registerEvent(*this, nullptr, std::bind(&Client::handleWrite, this, command));
 }
