@@ -9,8 +9,10 @@
 #define PROVIDE_SINGLE_JOB "Please provide one job to "
 #define PROVIDE_STATUS \
     "Please provide one job to get the status from at a time.\n\
-If you wish to see all jobs, request STATUS with no arguments."
-#define PROVIDED_WHILST_TERMINATE "You have given arguments for the TERMINATE command, did you mean to STOP?"
+If you wish to see all jobs, request 'status' with no arguments."
+#define PROVIDED_WHILST_TERMINATE "You have given arguments for the 'terminate' command, did you mean to 'stop'?"
+#define PROVIDED_WHILST_RELOAD "You have given arguments for the 'reload' command\nThis command does not take a file path"\
+" but instead reloads the default config file. Please run the 'reload' command without arguments."
 
 namespace taskmasterd
 {
@@ -70,7 +72,7 @@ std::optional<proto::CommandResponse> Server::parseCommand(const proto::Command&
     const std::string      cmd_str  = commandTypeEnumToString(cmd.type());
     const auto             arg_size = cmd.args().size();
 
-    if (cmd.type() == proto::CommandType::START || cmd.type() == proto::CommandType::STOP || cmd.type() == proto::CommandType::RESTART || cmd.type() == proto::CommandType::RELOAD) {
+    if (cmd.type() == proto::CommandType::START || cmd.type() == proto::CommandType::STOP || cmd.type() == proto::CommandType::RESTART) {
         if (arg_size == 0) {
             error_response.set_status(proto::CommandStatus::ARGUMENT_ERROR);
             error_response.set_message(PROVIDE_JOB + cmd_str + ".");
@@ -86,10 +88,14 @@ std::optional<proto::CommandResponse> Server::parseCommand(const proto::Command&
             error_response.set_message(PROVIDE_STATUS);
             return error_response;
         }
-    } else if (cmd.type() == proto::CommandType::TERMINATE) {
-        if (arg_size > 1) {
+    } else if (cmd.type() == proto::CommandType::TERMINATE || cmd.type() == proto::CommandType::RELOAD) {
+        if (arg_size >= 1) {
             error_response.set_status(proto::CommandStatus::TOO_MANY_ARGUMENTS);
-            error_response.set_message(PROVIDED_WHILST_TERMINATE);
+
+            if (cmd.type() == proto::CommandType::TERMINATE)
+                error_response.set_message(PROVIDED_WHILST_TERMINATE);
+            else
+                error_response.set_message(PROVIDED_WHILST_RELOAD);
             return error_response;
         }
     } else {
