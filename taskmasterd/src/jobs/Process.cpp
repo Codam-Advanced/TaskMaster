@@ -177,6 +177,7 @@ void Process::onStartTime()
 {
     LOG_INFO("Process: " + _name + " successfully surpasses the start time");
     _state = State::RUNNING;
+    _job.onProcessSurpassedStartTime();
 }
 
 void Process::dupPath(i32 std_input, const std::string& path)

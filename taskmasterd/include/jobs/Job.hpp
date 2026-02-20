@@ -54,6 +54,7 @@ public:
      * @brief function that is called by a process when it exited
      *
      * This method will handle any exit removing or auto restarting a new process
+     * 
      */
     void onExit(Process&, i32 status_code);
 
@@ -63,6 +64,14 @@ public:
      * This method will handle any exit removing or auto restarting a new process
      */
     void onStop(Process&);
+
+    /**
+     * @brief function that is called by a process when it successfully started
+     *
+     * This method is needed to update the job state to running when all processes surpasses the start time 
+     * @param proc 
+     */
+    void onProcessSurpassedStartTime();
 
     /**
      * @brief Get the job configuration.
@@ -128,12 +137,12 @@ private:
     void restartProcesses();
 
     /**
-     * @brief Helper method to check if all processes are in a certain state.
+     * @brief Helper method to check if all processes are in certain states.
      *
-     * @param  Process::State state a process state
+     * @param  Process::State vector state a process state
      * @return boolean
      */
-    bool allProcessesInState(Process::State state);
+    bool allProcessesInStates(std::vector<Process::State> state);
 
     /**
      * @brief Helper method to parse argument (argv, cmd)

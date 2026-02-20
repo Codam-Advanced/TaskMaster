@@ -1,6 +1,6 @@
 jobs:
   nginx:
-    cmd: "/usr/bin/sleep 1"
+    cmd: "/usr/bin/sleep 10"
     numprocs: 1
     umask: 022
     workingdir: /tmp
@@ -20,7 +20,7 @@ jobs:
       ANSWER: 42
 
   sleepy:
-    cmd: "/usr/bin/sleep 1"
+    cmd: "/usr/bin/sleep 10"
     numprocs: 1
     umask: 077
     workingdir: /tmp
@@ -35,7 +35,7 @@ jobs:
     stderr: /tmp/vgsworker.stderr
 
   sleepy2:
-    cmd: "/usr/bin/sleep 1"
+    cmd: "/usr/bin/sleep 10"
     numprocs: 1
     umask: 077
     workingdir: /tmp
