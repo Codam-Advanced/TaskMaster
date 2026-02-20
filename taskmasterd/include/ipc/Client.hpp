@@ -8,17 +8,18 @@
 
 namespace taskmasterd
 {
+
+class Server;
+
 class Client : ipc::Socket // : public ProtoReader<proto::Command>
 {
 public:
-    using CommandCallback = std::function<proto::CommandResponse(proto::Command)>;
-
     /**
      * @brief Construct a new Client object.
      *
      * @param socket The connected socket representing the client.
      */
-    Client(ipc::Socket&& socket, CommandCallback callback);
+    Client(ipc::Socket&& socket, Server& server);
     virtual ~Client();
 
     void handleRead();
@@ -44,6 +45,6 @@ private:
     ipc::ProtoReader<proto::Command>         _proto_reader;
     ipc::ProtoWriter<proto::CommandResponse> _proto_writer;
 
-    CommandCallback _on_command;
+    Server& _server;
 };
 } // namespace taskmasterd

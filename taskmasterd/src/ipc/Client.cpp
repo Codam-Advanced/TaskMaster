@@ -1,6 +1,7 @@
 #include <taskmasterd/include/core/Globals.hpp>
 #include <taskmasterd/include/ipc/Client.hpp>
 
+#include <taskmasterd/include/ipc/Server.hpp>
 #include <logger/include/Logger.hpp>
 #include <proto/taskmaster.pb.h>
 #include <taskmasterd/include/core/EventManager.hpp>
@@ -9,10 +10,10 @@
 
 namespace taskmasterd
 {
-Client::Client(Socket&& socket, CommandCallback callback)
+Client::Client(Socket&& socket, Server& server)
     // : ProtoReader<proto::Command>(std::move(socket))
     : Socket(std::move(socket))
-    , _on_command(callback)
+    , _server(server)
 {
     EventManager::getInstance().registerEvent(*this, std::bind(&Client::handleRead, this), nullptr);
 
@@ -77,8 +78,7 @@ void Client::handleMessage(proto::Command command)
     EventManager::getInstance().unregisterEvent(*this);
 
     // call the server callback
-    // TODO: catch exceptions and return the necessary response status
-    proto::CommandResponse response = _on_command(command);
+    proto::CommandResponse response = _server.onCommand(command);
 
     // Get ready to send the command response
     _proto_writer.init(response);

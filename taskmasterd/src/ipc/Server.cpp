@@ -35,11 +35,9 @@ Server::~Server()
 void Server::onAccept()
 {
     // Accept a new connection
-    ipc::Socket client = this->accept();
+    ipc::Socket clientSocket = this->accept();
 
-    Client::CommandCallback cb = [this](proto::Command cmd) { return this->onCommand(cmd); };
-
-    _clients.emplace_back(std::make_unique<Client>(std::move(client), std::move(cb)));
+    _clients.emplace_back(std::make_unique<Client>(std::move(clientSocket), *this));
 
     // Clean up disconnected clients
     _clients.erase(std::remove_if(_clients.begin(), _clients.end(), [](const std::unique_ptr<Client>& client) { return client->isConnected() == false; }), _clients.end());
