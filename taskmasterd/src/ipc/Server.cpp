@@ -110,7 +110,7 @@ std::optional<proto::CommandResponse> Server::parseCommand(const proto::Command&
     return std::nullopt;
 }
 
-proto::CommandResponse Server::onCommand(proto::Command cmd)
+proto::CommandResponse Server::onCommand(proto::Command& cmd)
 {
     // extract the global
     extern std::atomic<bool> g_running;
@@ -118,7 +118,10 @@ proto::CommandResponse Server::onCommand(proto::Command cmd)
 
     auto res = parseCommand(cmd);
     if (res.has_value())
+    {
+        cmd.set_type(proto::CommandType::COMMAND_ERROR);
         return res.value();
+    }
 
     switch (cmd.type()) {
     case proto::CommandType::START:
