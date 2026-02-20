@@ -44,11 +44,11 @@ void Process::start(const std::string& path, char* const* argv, char* const* env
         setpgid(0, _pgid); // If pgid is 0, pid of the child process is used as pgid
 
         if (!config.err->empty()) {
-            LOG_DEBUG("Dupping stderr to path: " + config.err.value())
+            LOG_DEBUG("Duping stderr to path: " + config.err.value())
             dupPath(STDERR_FILENO, config.err.value());
         }
         if (!config.out->empty()) {
-            LOG_DEBUG("Dupping stdout to path: " + config.out.value())
+            LOG_DEBUG("Duping stdout to path: " + config.out.value())
             dupPath(STDOUT_FILENO, config.out.value());
         }
 
@@ -162,7 +162,7 @@ void Process::onExit(i32 status)
         _job.onExit(*this, WEXITSTATUS(status));
         break;
     default:
-        LOG_ERROR("Process " + _name + " stopped in a wierd state " + std::to_string(static_cast<int>(_state)));
+        LOG_ERROR("Process " + _name + " stopped in a weird state " + std::to_string(static_cast<int>(_state)));
     }
 }
 
@@ -175,14 +175,23 @@ void Process::onForcedExit(i32 status)
 
 void Process::onStartTime()
 {
-    LOG_INFO("Process: " + _name + " succesfully surpasses the start time");
+    LOG_INFO("Process: " + _name + " successfully surpasses the start time");
     _state = State::RUNNING;
 }
 
 void Process::dupPath(i32 std_input, const std::string& path)
 {
     int fd = open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    dup2(std_input, fd);
+    if (fd < 0)
+    {
+        throw std::runtime_error("Process: dupPath: failed to open file " + path);
+    }
+    if (dup2(fd, std_input) < 0)
+    {
+        ::close(fd);
+        throw std::runtime_error("Process: dupPath: failed to dup path fd: " + std::to_string(fd) + "path: " + path);
+    }
+    ::close(fd);
 }
 
 } // namespace taskmasterd

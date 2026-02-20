@@ -19,10 +19,10 @@ public:
     enum class State
     {
         EMPTY,    // The first time job is created or the config has been reloaded
-        STARTING, // the job is starting all its procceses
-        RUNNING,  // the job is running all its procceses
-        STOPPING, // the job is stopping all its procceses
-        STOPPED,  // the job is stopped all its procceses
+        STARTING, // the job is starting all its processes
+        RUNNING,  // the job is running all its processes
+        STOPPING, // the job is stopping all its processes
+        STOPPED,  // the job is stopped all its processes
         REPLACE,  // the job is marked to be replaced by another job with a different config
         REMOVE,   // the job is marked to be removed from the job manager
     };
@@ -122,13 +122,13 @@ private:
     void startProcesses();
 
     /**
-     * @brief Helper method to restart existing proccesses
+     * @brief Helper method to restart existing processes
      *
      */
     void restartProcesses();
 
     /**
-     * @brief Helper method to check if all proccesses are in a certain state.
+     * @brief Helper method to check if all processes are in a certain state.
      *
      * @param  Process::State state a process state
      * @return boolean

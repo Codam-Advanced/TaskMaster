@@ -29,6 +29,7 @@ void EventManager::updateEvent(const FileDescriptor& handler, EventCallback read
 
 void EventManager::updateEventInternal(const FileDescriptor& handler, i32 operation, EventCallback read_callback, EventCallback write_callback)
 {
+    // make sure the events are 0 initialized 
     struct epoll_event event{};
     // Set the events based on the provided callbacks
     if (read_callback)
