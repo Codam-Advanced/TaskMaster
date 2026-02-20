@@ -1,9 +1,11 @@
 
 #include "taskmasterd/include/jobs/JobManager.hpp"
 #include "logger/include/Logger.hpp"
+#include "proto/taskmaster.pb.h"
 #include "taskmasterd/include/core/EventManager.hpp"
 #include "taskmasterd/include/jobs/Job.hpp"
 #include "taskmasterd/include/jobs/JobConfig.hpp"
+#include <atomic>
 #include <exception>
 #include <iostream>
 #include <stdexcept>
@@ -26,7 +28,7 @@ JobManager::~JobManager()
 {
     kill();
 
-    // after we kill all jobs we should wait before we destory the object
+    // after we kill all jobs we should wait before we destroy the object
     for (auto it = _jobs.begin(); it != _jobs.end(); it++) {
         if (it->second.getState() == Job::State::STOPPED || it->second.getState() == Job::State::EMPTY)
             continue;
@@ -51,19 +53,19 @@ proto::CommandResponse JobManager::start(const std::string& job_name)
 {
     proto::CommandResponse res;
     try {
-        Job&                   job = findJob(job_name);
+        Job& job = findJob(job_name);
 
         try {
             job.start();
             res.set_status(proto::CommandStatus::OK);
             res.set_message("Successfully put job " + job_name + " in starting state.");
             return res;
-        } catch(const std::exception& e) {
+        } catch (const std::exception& e) {
             res.set_status(proto::CommandStatus::ERROR);
             res.set_message(std::string("Internal daemon error: ") + e.what());
             return res;
         }
-    } catch(const std::exception& e) {
+    } catch (const std::exception& e) {
         res.set_status(proto::CommandStatus::ARGUMENT_ERROR);
         res.set_message("Invalid argument: '" + job_name + "' cannot find job");
         return res;
@@ -74,19 +76,19 @@ proto::CommandResponse JobManager::stop(const std::string& job_name)
 {
     proto::CommandResponse res;
     try {
-        Job&                   job = findJob(job_name);
+        Job& job = findJob(job_name);
 
         try {
             job.stop();
             res.set_status(proto::CommandStatus::OK);
             res.set_message("Successfully put job " + job_name + " in stopping state.");
             return res;
-        } catch(const std::exception& e) {
+        } catch (const std::exception& e) {
             res.set_status(proto::CommandStatus::ERROR);
             res.set_message(std::string("Internal daemon error: ") + e.what());
             return res;
         }
-    } catch(const std::exception& e) {
+    } catch (const std::exception& e) {
         res.set_status(proto::CommandStatus::ARGUMENT_ERROR);
         res.set_message("Invalid argument: '" + job_name + "' cannot find job");
         return res;
@@ -104,19 +106,19 @@ proto::CommandResponse JobManager::restart(const std::string& job_name)
 {
     proto::CommandResponse res;
     try {
-        Job&                   job = findJob(job_name);
+        Job& job = findJob(job_name);
         try {
             job.stop();
             job.start();
             res.set_status(proto::CommandStatus::OK);
             res.set_message("Successfully put job " + job_name + " in restarting state.");
             return res;
-        } catch(const std::exception& e) {
+        } catch (const std::exception& e) {
             res.set_status(proto::CommandStatus::ERROR);
             res.set_message(std::string("Internal daemon error: ") + e.what());
             return res;
         }
-    } catch(const std::exception& e) {
+    } catch (const std::exception& e) {
         res.set_status(proto::CommandStatus::ARGUMENT_ERROR);
         res.set_message("Invalid argument: '" + job_name + "' cannot find job");
         return res;
@@ -125,31 +127,38 @@ proto::CommandResponse JobManager::restart(const std::string& job_name)
 
 proto::CommandResponse JobManager::reload()
 {
-    _config = JobConfig::getJobConfigs(_config_path);
-
-    // loop through jobs that are changed or removed
-    for (auto& [name, job] : _jobs) {
-
-        // if job is not found or has changed we will have to stop the old job.
-        if (_config.find(name) == _config.end() || _config.at(name) != job.getConfig())
-            job.stop();
-    }
-
-    // loop through the new config to add new jobs to the job manager
-    for (auto& [name, config] : _config) {
-        if (_jobs.find(name) == _jobs.end())
-            createJob(name);
-    }
-
-    // update the _jobs map
-    update();
-
     proto::CommandResponse res;
+    try {
+        _config = JobConfig::getJobConfigs(_config_path);
 
-    start();
-    res.set_status(proto::CommandStatus::OK);
-    res.set_message("Successfully started a reload of the config file");
-    return res;
+        // loop through jobs that are changed or removed
+        for (auto& [name, job] : _jobs) {
+
+            // if job is not found or has changed we will have to stop the old job.
+            if (_config.find(name) == _config.end() || _config.at(name) != job.getConfig())
+                job.stop();
+        }
+
+        // loop through the new config to add new jobs to the job manager
+        for (auto& [name, config] : _config) {
+            if (_jobs.find(name) == _jobs.end())
+                createJob(name);
+        }
+
+        // update the _jobs map
+        update();
+
+        start();
+        res.set_status(proto::CommandStatus::OK);
+        res.set_message("Successfully started a reload of the config file");
+        return res;
+    } catch (const std::exception& e) {
+
+        _config.clear();
+        res.set_status(proto::CommandStatus::ERROR);
+        res.set_message(std::string("Internal daemon error: ") + e.what());
+        return res;
+    }
 }
 
 proto::CommandResponse JobManager::status()
@@ -170,12 +179,19 @@ proto::CommandResponse JobManager::status(const std::string& job_name)
 {
     proto::CommandResponse res;
     std::stringstream      msg;
-    Job&                   job = findJob(job_name);
 
-    res.set_status(proto::CommandStatus::OK);
-    msg << job;
-    res.set_message(msg.str());
-    return res;
+    try {
+        Job& job = findJob(job_name);
+
+        res.set_status(proto::CommandStatus::OK);
+        msg << job;
+        res.set_message(msg.str());
+        return res;
+    } catch (const std::exception& e) {
+        res.set_status(proto::CommandStatus::ARGUMENT_ERROR);
+        res.set_message("Invalid argument: '" + job_name + "' cannot find job");
+        return res;
+    }
 }
 
 void JobManager::update()
@@ -201,7 +217,7 @@ void JobManager::onStop(const std::string job_name)
 {
     Job& job = _jobs.at(job_name);
 
-    // if the job is not in the config anymore we should shedule it to be removed
+    // if the job is not in the config anymore we should schedule it to be removed
     if (_config.find(job_name) == _config.end())
         return job.remove();
 
@@ -224,7 +240,7 @@ void JobManager::createJob(const std::string& job_name)
 {
     auto map = _jobs.emplace(std::piecewise_construct, std::forward_as_tuple(job_name), std::forward_as_tuple(_config.at(job_name), *this));
 
-    // Was the job creation succesfull?
+    // Was the job creation successful?
     if (!map.second)
         throw std::runtime_error("new Job :" + job_name + " Couldn't be created");
 

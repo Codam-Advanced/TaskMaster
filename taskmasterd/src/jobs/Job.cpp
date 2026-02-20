@@ -274,8 +274,6 @@ void Job::onStop(Process& proc)
     switch (_state) {
     case State::STARTING:
         proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
-        if (allProcessesInStates({Process::State::STARTING, Process::State::RUNNING}))
-            _state = State::RUNNING;
         break;
     case State::STOPPING:
         if (!allProcessesInStates({Process::State::STOPPED}))

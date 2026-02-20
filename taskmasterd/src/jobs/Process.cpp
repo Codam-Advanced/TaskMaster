@@ -183,12 +183,10 @@ void Process::onStartTime()
 void Process::dupPath(i32 std_input, const std::string& path)
 {
     int fd = open(path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (fd < 0)
-    {
+    if (fd < 0) {
         throw std::runtime_error("Process: dupPath: failed to open file " + path);
     }
-    if (dup2(fd, std_input) < 0)
-    {
+    if (dup2(fd, std_input) < 0) {
         ::close(fd);
         throw std::runtime_error("Process: dupPath: failed to dup path fd: " + std::to_string(fd) + "path: " + path);
     }

@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <functional>
 #include <optional>
+#include <stdexcept>
 #include <taskmasterd/include/jobs/JobConfig.hpp>
 
 namespace taskmasterd
@@ -221,38 +222,28 @@ JobConfig::JobConfig(const std::string& name, const YAML::Node& config)
 std::unordered_map<std::string, JobConfig> JobConfig::getJobConfigs(const std::string& filename)
 {
     std::unordered_map<std::string, JobConfig> jobConfigs;
+    YAML::Node config = YAML::LoadFile(filename)["jobs"];
 
-    try {
-        YAML::Node config = YAML::LoadFile(filename)["jobs"];
+    if (!config.IsDefined()) {
+        LOG_FATAL("ERROR: No 'jobs' node found in the configuration file.");
+        throw std::runtime_error("ERROR: No 'jobs' node found in the configuration file.");
+    }
 
-        if (!config.IsDefined()) {
-            LOG_FATAL("ERROR: No 'jobs' node found in the configuration file.");
-            return jobConfigs;
+    for (auto it = config.begin(); it != config.end(); ++it) {
+        std::string name = it->first.as<std::string>();
+
+        if (jobConfigs.find(name) != jobConfigs.end()) {
+            LOG_WARNING(("ERROR: Duplicate job name found: " + name + "Skipping...").c_str());
+            continue;
         }
 
-        for (auto it = config.begin(); it != config.end(); ++it) {
-            std::string name = it->first.as<std::string>();
-
-            if (jobConfigs.find(name) != jobConfigs.end()) {
-                LOG_WARNING(("ERROR: Duplicate job name found: " + name + "Skipping...").c_str());
-                continue;
-            }
-
-            try {
-                // Create a JobConfig object and add it to the map
-                jobConfigs.emplace(name, JobConfig(name, config[name]));
-            } catch (const std::exception& e) {
-                LOG_ERROR(("ERROR: Failed to parse job '" + name + "': " + e.what() + " Skipping...").c_str());
-                continue;
-            }
+        try {
+            // Create a JobConfig object and add it to the map
+            jobConfigs.emplace(name, JobConfig(name, config[name]));
+        } catch (const std::exception& e) {
+            LOG_ERROR(("ERROR: Failed to parse job '" + name + "': " + e.what() + " Skipping...").c_str());
+            continue;
         }
-    } catch (const std::exception& e) {
-        LOG_ERROR(e.what());
-
-        // clear the map since we encountered a fatal error
-        jobConfigs.clear();
-
-        return jobConfigs;
     }
 
     // Return the map of job configurations
