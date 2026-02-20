@@ -20,20 +20,20 @@ jobs:
       STARTED_BY: taskmaster
       ANSWER: 42
 
-  :
-    cmd: "/usr/bin/sleep 10"
+  ls:
+    cmd: "/usr/bin/ls"
     numprocs: 1
     umask: 077
-    workingdir: /tmp
-    autostart: true
+    workingdir: /home/jmeruma/Downloads
+    autostart: false
     autorestart: true
     exitcodes: 0
     startretries: 3
     starttime: 5
     stopsignal: QUIT
     stoptime: 10
-    stdout: /tmp/vgsworker.stdout
-    stderr: /tmp/vgsworker.stderr
+    stdout: ~/Desktop/ls.out
+    stderr: ~/Desktop/ls.err
 
   cheese:
     cmd: "/usr/bin/sleep 10"

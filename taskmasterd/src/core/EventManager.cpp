@@ -1,3 +1,5 @@
+#include <iostream>
+#include <ostream>
 #include <taskmasterd/include/core/EventManager.hpp>
 
 #include <stdexcept>

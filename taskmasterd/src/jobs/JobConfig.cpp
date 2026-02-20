@@ -157,7 +157,7 @@ void parseSTDOUT(JobConfig* object, const YAML::Node& config)
     std::filesystem::path dir  = path.parent_path();
 
     if (!std::filesystem::exists(dir)) {
-        LOG_WARNING("Directory of Path: " + path.string() + "Doesn't exists! setting to null..");
+        LOG_WARNING("Directory of Path: [" + path.string() + "] doesn't exists! Redirect to stdout");
         object->out = std::nullopt;
     } else {
         object->out = config.as<std::string>();
@@ -175,7 +175,7 @@ void parseSTDERR(JobConfig* object, const YAML::Node& config)
     std::filesystem::path dir  = path.parent_path();
 
     if (!std::filesystem::exists(dir)) {
-        LOG_WARNING("Option STDERR: Directory of Path: " + path.string() + "Doesn't exists! setting to null..");
+        LOG_WARNING("Directory of Path: [" + path.string() + "] doesn't exists! Redirect to stderr");
         object->err = std::nullopt;
     } else {
         object->err = config.as<std::string>();
