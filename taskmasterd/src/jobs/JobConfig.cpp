@@ -3,6 +3,7 @@
 #include <functional>
 #include <optional>
 #include <stdexcept>
+#include <string>
 #include <taskmasterd/include/jobs/JobConfig.hpp>
 
 namespace taskmasterd
@@ -213,25 +214,36 @@ JobConfig::JobConfig(const std::string& name, const YAML::Node& config)
                                                                                                         {"stderr", parseSTDERR},
                                                                                                         {"env", parseENV}};
 
-    for (auto it = nodes.begin(); it != nodes.end(); ++it) {
-        LOG_DEBUG(("Parsing node: " + it->first).c_str());
-        it->second(this, config[it->first]);
+    for (auto it = config.begin(); it != config.end(); ++it) {
+
+        std::string option = it->first.as<std::string>();
+
+        if (nodes.find(option) == nodes.end()) {
+            LOG_WARNING("Unsupported Option [" + option + "] skipping....");
+            continue;
+        }
+
+        LOG_DEBUG("Parsing node: " + option);
+        nodes.at(option)(this, config[option]);
     }
 }
 
 std::unordered_map<std::string, JobConfig> JobConfig::getJobConfigs(const std::string& filename)
 {
     std::unordered_map<std::string, JobConfig> jobConfigs;
-    YAML::Node config = YAML::LoadFile(filename)["jobs"];
+    YAML::Node                                 config = YAML::LoadFile(filename)["jobs"];
 
     if (!config.IsDefined()) {
         LOG_FATAL("ERROR: No 'jobs' node found in the configuration file.");
         throw std::runtime_error("ERROR: No 'jobs' node found in the configuration file.");
     }
 
-    for (auto it = config.begin(); it != config.end(); ++it) {
+    for (auto it = config.begin(); it != config.end(); it++) {
         std::string name = it->first.as<std::string>();
-
+        if (it->first.IsNull()) {
+            LOG_ERROR("ERROR: Invalid job name: [" + name + "] Skipping...");
+            continue;
+        }
         if (jobConfigs.find(name) != jobConfigs.end()) {
             LOG_WARNING(("ERROR: Duplicate job name found: " + name + "Skipping...").c_str());
             continue;

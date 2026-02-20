@@ -1,5 +1,5 @@
 jobs:
-  nginx:
+  n:
     cmd: "/usr/bin/sleep 10"
     numprocs: 1
     umask: 022
@@ -10,6 +10,7 @@ jobs:
       - 0
       - 2
     startretries: 3
+    AAAAAA: "SIEP"
     starttime: 1
     stopsignal: QUIT
     stoptime: 10
@@ -19,7 +20,7 @@ jobs:
       STARTED_BY: taskmaster
       ANSWER: 42
 
-  sleepy:
+  :
     cmd: "/usr/bin/sleep 10"
     numprocs: 1
     umask: 077
@@ -34,7 +35,7 @@ jobs:
     stdout: /tmp/vgsworker.stdout
     stderr: /tmp/vgsworker.stderr
 
-  sleepy2:
+  cheese:
     cmd: "/usr/bin/sleep 10"
     numprocs: 1
     umask: 077
