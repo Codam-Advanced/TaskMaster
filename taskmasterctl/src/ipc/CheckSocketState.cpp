@@ -40,8 +40,14 @@ void checkSocketState(const ipc::Socket& socket)
         for (i32 i = 0; i < num_events; i++) {
             if (events[i].events & EPOLLHUP) {
                 LOG_INFO("\nDeamon has closed the socket");
-                // Raise a SIGINT so the main thread gets interupted 
-                raise(SIGINT);
+
+                // Raise a SIGINT so the main thread gets interupted
+
+                // If a terminate command has been sent then the main thread is already waiting
+                // for this thread to end, no need to raise a signal as this will set an error exit code
+                // and prevent proper cleanup of resources.
+                if (g_exitChecker == false) 
+                    raise(SIGINT);
                 return ;
             }
         }

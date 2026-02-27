@@ -57,7 +57,7 @@ public:
             if (send(fd.getFd(), &size, sizeof(size), MSG_NOSIGNAL) == -1)
                 throw std::runtime_error("Failed to send the message size, is the socket still open?");
             _sizeWritten = true;
-            LOG_DEBUG("Successfully sent the message size")
+            LOG_DEBUG("Successfully sent a message size of " + std::to_string(_serializedMessage.size()) + " bytes");
             return false;
         } else {
             if (static_cast<size_t>(_bytesWritten) == _serializedMessage.size()) {

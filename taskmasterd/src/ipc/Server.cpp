@@ -2,8 +2,6 @@
 #include "taskmasterd/include/jobs/JobManager.hpp"
 #include <taskmasterd/include/ipc/Server.hpp>
 
-#include <algorithm>
-
 #include <logger/include/Logger.hpp>
 #include <taskmasterd/include/core/EventManager.hpp>
 
@@ -11,8 +9,10 @@
 #define PROVIDE_SINGLE_JOB "Please provide one job to "
 #define PROVIDE_STATUS \
     "Please provide one job to get the status from at a time.\n\
-If you wish to see all jobs, request STATUS with no arguments."
-#define PROVIDED_WHILST_TERMINATE "You have given arguments for the TERMINATE command, did you mean to STOP?"
+If you wish to see all jobs, request 'status' with no arguments."
+#define PROVIDED_WHILST_TERMINATE "You have given arguments for the 'terminate' command, did you mean to 'stop'?"
+#define PROVIDED_WHILST_RELOAD "You have given arguments for the 'reload' command\nThis command does not take a file path"\
+" but instead reloads the default config file. Please run the 'reload' command without arguments."
 
 namespace taskmasterd
 {
@@ -37,11 +37,9 @@ Server::~Server()
 void Server::onAccept()
 {
     // Accept a new connection
-    ipc::Socket client = this->accept();
+    ipc::Socket clientSocket = this->accept();
 
-    Client::CommandCallback cb = [this](proto::Command cmd) { return this->onCommand(cmd); };
-
-    _clients.emplace_back(std::make_unique<Client>(std::move(client), std::move(cb)));
+    _clients.emplace_back(std::make_unique<Client>(std::move(clientSocket), *this));
 
     // Clean up disconnected clients
     _clients.erase(std::remove_if(_clients.begin(), _clients.end(), [](const std::unique_ptr<Client>& client) { return client->isConnected() == false; }), _clients.end());
@@ -74,7 +72,7 @@ std::optional<proto::CommandResponse> Server::parseCommand(const proto::Command&
     const std::string      cmd_str  = commandTypeEnumToString(cmd.type());
     const auto             arg_size = cmd.args().size();
 
-    if (cmd.type() == proto::CommandType::START || cmd.type() == proto::CommandType::STOP || cmd.type() == proto::CommandType::RESTART || cmd.type() == proto::CommandType::RELOAD) {
+    if (cmd.type() == proto::CommandType::START || cmd.type() == proto::CommandType::STOP || cmd.type() == proto::CommandType::RESTART) {
         if (arg_size == 0) {
             error_response.set_status(proto::CommandStatus::ARGUMENT_ERROR);
             error_response.set_message(PROVIDE_JOB + cmd_str + ".");
@@ -90,10 +88,14 @@ std::optional<proto::CommandResponse> Server::parseCommand(const proto::Command&
             error_response.set_message(PROVIDE_STATUS);
             return error_response;
         }
-    } else if (cmd.type() == proto::CommandType::TERMINATE) {
-        if (arg_size > 1) {
+    } else if (cmd.type() == proto::CommandType::TERMINATE || cmd.type() == proto::CommandType::RELOAD) {
+        if (arg_size >= 1) {
             error_response.set_status(proto::CommandStatus::TOO_MANY_ARGUMENTS);
-            error_response.set_message(PROVIDED_WHILST_TERMINATE);
+
+            if (cmd.type() == proto::CommandType::TERMINATE)
+                error_response.set_message(PROVIDED_WHILST_TERMINATE);
+            else
+                error_response.set_message(PROVIDED_WHILST_RELOAD);
             return error_response;
         }
     } else {
@@ -108,7 +110,7 @@ std::optional<proto::CommandResponse> Server::parseCommand(const proto::Command&
     return std::nullopt;
 }
 
-proto::CommandResponse Server::onCommand(proto::Command cmd)
+proto::CommandResponse Server::onCommand(proto::Command& cmd)
 {
     // extract the global
     extern std::atomic<bool> g_running;
@@ -116,7 +118,10 @@ proto::CommandResponse Server::onCommand(proto::Command cmd)
 
     auto res = parseCommand(cmd);
     if (res.has_value())
+    {
+        cmd.set_type(proto::CommandType::COMMAND_ERROR);
         return res.value();
+    }
 
     switch (cmd.type()) {
     case proto::CommandType::START:
@@ -132,18 +137,11 @@ proto::CommandResponse Server::onCommand(proto::Command cmd)
     case proto::CommandType::RELOAD:
         return _manager.reload();
     case proto::CommandType::TERMINATE:
-        g_running = false;
-
         response.set_status(proto::CommandStatus::OK);
         response.set_message("Successfully started the termination sequence");
         return response;
     default:
-        std::string err_msg("Command type " + std::to_string(static_cast<i32>(cmd.type())) + " Not supported ");
-
-        response.set_status(proto::CommandStatus::TYPE_ERROR);
-        response.set_message(err_msg);
-        LOG_WARNING(err_msg);
-        return response;
+        std::unreachable();
     }
 }
 } // namespace taskmasterd

@@ -77,7 +77,12 @@ int main()
                 proto::Command command = taskmasterctl::getCommandFromUser();
 
                 taskmasterctl::sendCommandToDaemon(socket, command);
-                taskmasterctl::awaitDaemonResponse(socket);
+                if (taskmasterctl::awaitDaemonResponse(socket, command) == true)
+                {
+                    taskmasterctl::g_exitChecker = true;
+                    socketChecker.join();
+                    return 0;
+                }
             } catch (const std::exception& e) {
                 taskmasterctl::g_exitChecker = true;
                 socketChecker.join();

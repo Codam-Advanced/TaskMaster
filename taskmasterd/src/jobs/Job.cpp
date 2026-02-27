@@ -84,8 +84,6 @@ void Job::startProcesses()
             _pgid = proc->getPid();
         }
     }
-
-    _state = State::RUNNING;
 }
 
 void Job::restartProcesses()
@@ -93,7 +91,7 @@ void Job::restartProcesses()
     for (auto& proc : _processes) {
 
         proc->resetRestarts();
-        if (proc->getState() == Process::State::STOPPED)
+        if (proc->getState() == Process::State::STOPPED || proc->getState() == Process::State::EXITED || proc->getState() == Process::State::BACKOFF)
             proc->start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
     }
 }
@@ -112,10 +110,10 @@ void Job::stop()
         proc->stop(_config.stop_time, _config.stop_signal);
 }
 
-bool Job::allProcessesInState(Process::State state)
+bool Job::allProcessesInStates(std::vector<Process::State> state)
 {
     for (auto& proc : _processes) {
-        if (proc->getState() != state)
+        if (std::find(state.begin(), state.end(), proc->getState()) == state.end())
             return false;
     }
     return true;
@@ -125,6 +123,8 @@ void Job::onExit(Process& proc, i32 status_code)
 {
     if (proc.getRestarts() == _config.start_retries) {
         LOG_WARNING("Process stopped max retries reached " + proc.getName());
+        if (allProcessesInStates({Process::State::EXITED, Process::State::BACKOFF, Process::State::STOPPED}))
+            _state = State::STOPPED;
         return;
     }
 
@@ -133,8 +133,9 @@ void Job::onExit(Process& proc, i32 status_code)
         break;
     case JobConfig::RestartPolicy::ALWAYS:
         proc.addRestart();
+        _state = State::STARTING;
         proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
-        break;
+        return;
     case JobConfig::RestartPolicy::ON_FAILURE:
         proc.addRestart();
         for (auto& code : _config.exit_codes) {
@@ -142,9 +143,13 @@ void Job::onExit(Process& proc, i32 status_code)
             if (code == status_code)
                 break;
         }
+        _state = State::STARTING;
         proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
-        break;
+        return;
     }
+
+    if (allProcessesInStates({Process::State::EXITED, Process::State::BACKOFF, Process::State::STOPPED}))
+        _state = State::STOPPED;
 }
 
 static char const* processStateEnumToString(Process::State state)
@@ -269,17 +274,22 @@ void Job::onStop(Process& proc)
     switch (_state) {
     case State::STARTING:
         proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
-        if (allProcessesInState(Process::State::STARTING) || allProcessesInState(Process::State::RUNNING))
-            _state = State::RUNNING;
         break;
     case State::STOPPING:
-        if (!allProcessesInState(Process::State::STOPPED))
+        if (!allProcessesInStates({Process::State::STOPPED}))
             break;
         _state = State::STOPPED;
         _manager.onStop(_config.name);
         break;
     default:
         LOG_DEBUG("on stop called for process" + proc.getName() + std::to_string(static_cast<i32>(_state)));
+    }
+}
+
+void Job::onProcessSurpassedStartTime()
+{
+    if (allProcessesInStates({Process::State::RUNNING})) {
+        _state = State::RUNNING;
     }
 }
 

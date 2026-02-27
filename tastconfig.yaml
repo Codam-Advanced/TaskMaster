@@ -1,7 +1,7 @@
 jobs:
-  nginx:
-    cmd: "/usr/bin/sleep 4"
-    numprocs: 10
+  n:
+    cmd: "/usr/bin/sleep 10"
+    numprocs: 1
     umask: 022
     workingdir: /tmp
     autostart: true
@@ -10,6 +10,7 @@ jobs:
       - 0
       - 2
     startretries: 3
+    AAAAAA: "SIEP"
     starttime: 1
     stopsignal: QUIT
     stoptime: 10
@@ -19,24 +20,24 @@ jobs:
       STARTED_BY: taskmaster
       ANSWER: 42
 
-  sleepy:
-    cmd: "/usr/bin/sleep 100"
-    numprocs: 10
+  ls:
+    cmd: "/usr/bin/ls"
+    numprocs: 1
     umask: 077
-    workingdir: /tmp
-    autostart: true
+    workingdir: /home/jmeruma/Downloads
+    autostart: false
     autorestart: true
     exitcodes: 0
     startretries: 3
     starttime: 5
     stopsignal: QUIT
     stoptime: 10
-    stdout: /tmp/vgsworker.stdout
-    stderr: /tmp/vgsworker.stderr
+    stdout: ~/Desktop/ls.out
+    stderr: ~/Desktop/ls.err
 
-  sleepy2:
-    cmd: "/usr/bin/sleep 100"
-    numprocs: 4
+  cheese:
+    cmd: "/usr/bin/sleep 10"
+    numprocs: 1
     umask: 077
     workingdir: /tmp
     autostart: true

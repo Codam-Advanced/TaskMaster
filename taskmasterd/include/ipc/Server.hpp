@@ -40,7 +40,7 @@ public:
      * It is responsible to parse the command and give the result to specific job command through the job manager
      * @param cmd The proto command that the job manager should handle.
      */
-    proto::CommandResponse onCommand(proto::Command cmd);
+    proto::CommandResponse onCommand(proto::Command& cmd);
 
 private:
     /**

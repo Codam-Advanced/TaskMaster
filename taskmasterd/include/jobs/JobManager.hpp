@@ -18,7 +18,7 @@ public:
 
     /**
      * @brief Construct a job manager that accepts the config file path
-     * it will parse and constuct the individual jobs
+     * it will parse and construct the individual jobs
      *
      * @param config_path
      */

@@ -40,7 +40,7 @@ void sendCommandToDaemon(ipc::Socket& socket, proto::Command& command)
 
 using ResponseReader       = ipc::ProtoReader<proto::CommandResponse>;
 using ResponseReaderReturn = std::pair<isize, std::optional<proto::CommandResponse>>;
-void awaitDaemonResponse(ipc::Socket& socket)
+bool awaitDaemonResponse(ipc::Socket& socket, proto::Command& command)
 {
     ResponseReaderReturn res = ResponseReaderReturn(0, std::nullopt);
     ResponseReader       protoReader;
@@ -54,23 +54,24 @@ void awaitDaemonResponse(ipc::Socket& socket)
     case proto::CommandStatus::OK:
         if (response.message().size() != 0)
             std::cout << response.message() << std::endl;
-        break;
+        if (command.type() == proto::CommandType::TERMINATE)
+            return true;
+        return false;
     case proto::CommandStatus::ERROR:
         if (response.message().size() != 0)
             LOG_ERROR(response.message())
-        break;
+        return false;
     case proto::CommandStatus::TYPE_ERROR:
         if (response.message().size() != 0)
             LOG_ERROR(response.message())
-        break;
+        return false;
     case proto::CommandStatus::TOO_MANY_ARGUMENTS:
     case proto::CommandStatus::ARGUMENT_ERROR:
         if (response.message().size() != 0)
             LOG_WARNING(response.message())
-        break;
+        return false;
     default:
         throw std::runtime_error("Received an invalid response status");
-        break;
     }
 }
 
