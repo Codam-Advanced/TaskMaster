@@ -1,10 +1,10 @@
 #include <taskmasterd/include/core/Globals.hpp>
 #include <taskmasterd/include/ipc/Client.hpp>
 
-#include <taskmasterd/include/ipc/Server.hpp>
 #include <logger/include/Logger.hpp>
 #include <proto/taskmaster.pb.h>
 #include <taskmasterd/include/core/EventManager.hpp>
+#include <taskmasterd/include/ipc/Server.hpp>
 
 #define BUFFER_SIZE 4096
 
@@ -60,7 +60,7 @@ void Client::handleWrite(proto::Command command)
             _proto_writer.clear();
 
             if (command.type() == proto::CommandType::TERMINATE)
-                g_running = false;
+                g_state = State::TERMINATED;
         }
     } catch (const std::exception& e) {
         LOG_ERROR("Error writing to client fd: " + std::to_string(_fd) + ": " + e.what())

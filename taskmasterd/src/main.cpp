@@ -14,13 +14,6 @@
 
 using namespace taskmasterd;
 
-void signalHandler(int signum)
-{
-    LOG_INFO("Received signal: " + to_string(static_cast<Signals>(signum)));
-
-    g_running = false;
-}
-
 int main(int argc, char** argv)
 {
     (void)argc;
@@ -28,6 +21,7 @@ int main(int argc, char** argv)
 
     std::signal(SIGINT, signalHandler);
     std::signal(SIGQUIT, signalHandler);
+    std::signal(SIGHUP, signalHandler);
 
     Logger::LogInterface::Initialize(PROGRAM_NAME, Logger::LogLevel::Debug, true);
     LOG_INFO("Starting " PROGRAM_NAME);
@@ -36,9 +30,21 @@ int main(int argc, char** argv)
         JobManager manager("./../tastconfig.yaml");
         Server     server(ipc::Socket::Type::UNIX, ipc::Address::UNIX("/tmp/taskmasterd.sock"), manager);
 
-        while (g_running) {
-            EventManager::getInstance().handleEvents();
-            manager.update();
+        bool running = true;
+        while (running) {
+            switch (g_state) {
+            case State::RUNNING:
+                EventManager::getInstance().handleEvents();
+                manager.update();
+                break;
+            case State::RELOAD:
+                manager.reload();
+                g_state = State::RUNNING;
+                break;
+            case State::TERMINATED:
+                running = false;
+                break;
+            }
         }
 
         LOG_INFO("Shutting down " PROGRAM_NAME);

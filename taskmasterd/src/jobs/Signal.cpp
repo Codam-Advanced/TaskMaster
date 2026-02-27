@@ -1,7 +1,23 @@
+#include <logger/include/Logger.hpp>
+#include <taskmasterd/include/core/Globals.hpp>
 #include <taskmasterd/include/jobs/Signal.hpp>
 
 namespace taskmasterd
 {
+void signalHandler(int signum)
+{
+    LOG_INFO("Received signal: " + to_string(static_cast<Signals>(signum)));
+
+    switch (signum) {
+    case SIGHUP:
+        g_state = State::RELOAD;
+        break;
+    default:
+        g_state = State::TERMINATED;
+        break;
+    }
+}
+
 std::ostream& operator<<(std::ostream& os, Signals signal)
 {
     switch (signal) {
