@@ -3,5 +3,12 @@
 
 namespace taskmasterd
 {
-inline std::atomic<bool> g_running{true};
-}
+enum class State
+{
+    RUNNING,
+    RELOAD,
+    TERMINATED,
+};
+
+inline std::atomic<State> g_state{State::RUNNING};
+} // namespace taskmasterd

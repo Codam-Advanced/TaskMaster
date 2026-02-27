@@ -17,6 +17,13 @@ enum class Signals : int
     USR2 = SIGUSR2
 };
 
+/**
+ * @brief Updates the program state based on the given signal
+ *
+ * @param signum
+ */
+void signalHandler(int signum);
+
 std::ostream& operator<<(std::ostream& os, Signals signal);
 
 std::string to_string(Signals signal);
