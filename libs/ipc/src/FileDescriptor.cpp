@@ -12,7 +12,6 @@ FileDescriptor::FileDescriptor(i32 fd) : _fd(fd) {}
 FileDescriptor::~FileDescriptor()
 {
     if (_fd != -1) {
-        LOG_DEBUG("Closing fd: " + std::to_string(_fd));
         ::close(_fd);
     }
 }

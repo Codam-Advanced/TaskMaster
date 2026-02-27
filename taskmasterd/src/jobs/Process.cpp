@@ -151,7 +151,7 @@ void Process::onExit(i32 status)
 {
     switch (_state) {
     case State::STOPPING:
-        LOG_DEBUG("Process " + _name + " was stopped with status " + std::to_string(WEXITSTATUS(status)));
+        LOG_INFO("Process " + _name + " was stopped with status " + std::to_string(WEXITSTATUS(status)));
         _state = State::STOPPED;
         _job.onStop(*this);
         break;
@@ -161,7 +161,7 @@ void Process::onExit(i32 status)
         _job.onExit(*this, WEXITSTATUS(status));
         break;
     case State::RUNNING:
-        LOG_DEBUG("Process " + _name + " exited with status " + std::to_string(WEXITSTATUS(status)));
+        LOG_INFO("Process " + _name + " exited with status " + std::to_string(WEXITSTATUS(status)));
         _state = State::EXITED;
         _job.onExit(*this, WEXITSTATUS(status));
         break;

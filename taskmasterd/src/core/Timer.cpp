@@ -55,8 +55,6 @@ void Timer::onExpire()
         throw std::runtime_error("Failed to read timerfd");
     }
 
-    LOG_DEBUG("Timer expired " + std::to_string(expirations) + " times");
-
     EventManager::getInstance().unregisterEvent(*this);
     _callback();
 }

@@ -29,13 +29,13 @@ JobManager::~JobManager()
     kill();
 
     // after we kill all jobs we should wait before we destroy the object
-    for (auto it = _jobs.begin(); it != _jobs.end(); it++) {
-        if (it->second.getState() == Job::State::STOPPED || it->second.getState() == Job::State::EMPTY)
+    for (auto it = _jobs.begin(); it != _jobs.end();) {
+        if (it->second.getState() == Job::State::STOPPED || it->second.getState() == Job::State::EMPTY) {
+            it++;
             continue;
+        }
         // continue to handle events so that the program doesn't get stuck
         EventManager::getInstance().handleEvents();
-        update();
-        it = _jobs.begin();
     }
 }
 

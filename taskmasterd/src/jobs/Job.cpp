@@ -282,7 +282,7 @@ void Job::onStop(Process& proc)
         _manager.onStop(_config.name);
         break;
     default:
-        LOG_DEBUG("on stop called for process" + proc.getName() + std::to_string(static_cast<i32>(_state)));
+        LOG_DEBUG("Process stopped while job is in a weird state" + proc.getName() + jobStateEnumToString(_state));
     }
 }
 
