@@ -112,8 +112,6 @@ std::optional<proto::CommandResponse> Server::parseCommand(const proto::Command&
 
 proto::CommandResponse Server::onCommand(proto::Command& cmd)
 {
-    // extract the global
-    extern std::atomic<bool> g_running;
     proto::CommandResponse   response;
 
     auto res = parseCommand(cmd);

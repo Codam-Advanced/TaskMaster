@@ -43,7 +43,20 @@ void Process::start(const std::string& path, char* const* argv, char* const* env
 
     if (_pid == 0) {
         // Child process
-        setpgid(0, _pgid); // If pgid is 0, pid of the child process is used as pgid
+
+        // Apply privilege de-escalation
+        if (setgid(getgid()) == -1) {
+            LOG_FATAL("Unable to drop privileges");
+            exit(-1);
+        }
+
+        if (setuid(getuid()) == -1) {
+            LOG_FATAL("Unable to drop privileges");
+            exit(-1);
+        }
+
+        // If pgid is 0, pid of the child process is used as pgid
+        setpgid(0, _pgid);
 
         try {
             if (config.err.has_value()) {
