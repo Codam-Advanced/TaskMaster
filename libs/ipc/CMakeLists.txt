@@ -19,7 +19,7 @@ include(FetchContent)
 FetchContent_Declare(
     protobuf
     GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
-    GIT_TAG        v30.0
+    GIT_TAG        v33.0
 )
 
 # Disable tests and install
