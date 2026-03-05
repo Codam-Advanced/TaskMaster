@@ -1,16 +1,15 @@
 jobs:
-  n:
-    cmd: "/usr/bin/sleep 10"
+  nginx:
+    cmd: "/usr/sbin/nginx -c /home/kali/Documents/taskmaster/testing/nginx/nginx.conf"
     numprocs: 1
     umask: 022
-    workingdir: /tmp
+    workingdir: /home/kali/Documents/taskmaster/testing/nginx
     autostart: true
     autorestart: true
     exitcodes:
       - 0
       - 2
     startretries: 3
-    AAAAAA: "SIEP"
     starttime: 1
     stopsignal: QUIT
     stoptime: 10
@@ -20,32 +19,89 @@ jobs:
       STARTED_BY: taskmaster
       ANSWER: 42
 
+  cat:
+    cmd: "/usr/bin/cat ./test"
+    numprocs: 1
+    umask: 077
+    workingdir: /home/kali/Documents/taskmaster/testing/cat
+    autostart: false
+    autorestart: false
+    starttime: 1
+    stopsignal: QUIT
+    stoptime: 10
+    stdout: /tmpt/cat.out
+    stderr: /tmpt/cat.err
+
+  cat_error:
+    cmd: "/usr/bin/cat ./invalid_file"
+    numprocs: 1
+    umask: 077
+    workingdir: /home/kali/Documents/taskmaster/testing/cat
+    autostart: false
+    autorestart: unexpected
+    exitcodes: 0
+    starttime: 1
+    stopsignal: QUIT
+    stoptime: 10
+    stdout: /tmpt/cat_error.out
+    stderr: /tmpt/cat_error.err
+
   ls:
     cmd: "/usr/bin/ls"
     numprocs: 1
     umask: 077
-    workingdir: /home/jmeruma/Downloads
+    workingdir: /tmp
     autostart: false
-    autorestart: true
+    autorestart: false
     exitcodes: 0
-    startretries: 3
-    starttime: 5
+    starttime: 1
     stopsignal: QUIT
     stoptime: 10
-    stdout: ~/Desktop/ls.out
-    stderr: ~/Desktop/ls.err
+    stdout: /tmp/ls.out
+    stderr: /tmp/ls.err
 
-  cheese:
+  sleep_running:
     cmd: "/usr/bin/sleep 10"
     numprocs: 1
     umask: 077
-    workingdir: /tmp
-    autostart: true
-    autorestart: true
+    autostart: false
+    autorestart: false
     exitcodes: 0
-    startretries: 3
     starttime: 5
     stopsignal: QUIT
     stoptime: 10
-    stdout: /tmp/vgsworker.stdout
+
+  sleep_starting:
+    cmd: "/usr/bin/sleep 5"
+    numprocs: 1
+    umask: 077
+    autostart: false
+    autorestart: false
+    exitcodes: 0
+    starttime: 10
+    stopsignal: QUIT
+    stoptime: 10
+
+  sleep_restarting:
+    cmd: "/usr/bin/sleep 5"
+    numprocs: 1
+    umask: 077
+    autostart: false
+    autorestart: true
+    exitcodes: 0
+    starttime: 2
+    stopsignal: QUIT
+    stoptime: 10
+
+  touch:
+    cmd: "/usr/bin/touch miep"
+    numprocs: 1
+    umask: 000
+    workingdir: /tmp
+    autostart: false
+    autorestart: false
+    exitcodes: 0
+    starttime: 0
+    stopsignal: QUIT
+    stoptime: 10
     stderr: /tmp/vgsworker.stderr
