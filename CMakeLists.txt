@@ -13,6 +13,9 @@ add_subdirectory(libs/logger)
 add_subdirectory(libs/utils)
 add_subdirectory(libs/ipc)
 
+# Set the installation prefix
+set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/bin)
+
 # include cmake module taskmasterd
 add_subdirectory(taskmasterd)
 
