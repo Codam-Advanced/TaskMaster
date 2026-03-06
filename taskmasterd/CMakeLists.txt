@@ -39,3 +39,8 @@ target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR
 
 # the PRIVATE keyword means that the target source and include directories will
 # only be used for this target and not for any targets that link to it.
+
+install(
+	TARGETS ${EXECUTABLE_NAME}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}
+)
