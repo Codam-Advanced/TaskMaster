@@ -214,6 +214,8 @@ JobConfig::JobConfig(const std::string& name, const YAML::Node& config)
                                                                                                         {"stderr", parseSTDERR},
                                                                                                         {"env", parseENV}};
 
+
+  
     for (auto it = config.begin(); it != config.end(); ++it) {
 
         std::string option = it->first.as<std::string>();
@@ -222,9 +224,11 @@ JobConfig::JobConfig(const std::string& name, const YAML::Node& config)
             LOG_WARNING("Unsupported Option [" + option + "] skipping....");
             continue;
         }
+    }
 
+    for (auto& [option, func] : nodes) {
         LOG_DEBUG("Parsing node: " + option);
-        nodes.at(option)(this, config[option]);
+        func(this, config[option]);
     }
 }
 
