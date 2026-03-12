@@ -72,6 +72,7 @@ void Process::start(const std::string& path, char* const* argv, char* const* env
                 throw std::logic_error("Working Dir Error: " + std::string(strerror(errno)));
             }
         } catch (const std::exception& e) {
+            LOG_ERROR("Error executing process " + config.name + " Issue: " + std::string(e.what()));
             exit(-1);
         }
 
@@ -169,7 +170,7 @@ void Process::onExit(i32 status)
         _job.onStop(*this);
         break;
     case State::STARTING:
-        LOG_WARNING("Process " + _name + " did not reach the start time " + std::to_string(WEXITSTATUS(status)));
+        LOG_WARNING("Process " + _name + " did not reach the start time! exit code: " + std::to_string(WEXITSTATUS(status)));
         _state = State::BACKOFF;
         _job.onExit(*this, WEXITSTATUS(status));
         break;
