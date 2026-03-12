@@ -145,7 +145,7 @@ void Job::onExit(Process& proc, i32 status_code)
     case JobConfig::RestartPolicy::ON_FAILURE:
         proc.addRestart();
         // if the status code is known its not an unexpected exit
-        if (std::find(it_begin, it_end, status_code) == it_end)
+        if (std::find(it_begin, it_end, status_code) != it_end)
             break;
         _state = State::STARTING;
         proc.start(_argv[0], const_cast<char* const*>(_argv.data()), const_cast<char* const*>(_env.data()), _config);
