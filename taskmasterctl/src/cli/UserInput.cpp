@@ -27,7 +27,7 @@ static std::string getToken(std::string& input)
     return token;
 }
 
-static bool parseCommandArgs(std::string& input, proto::Command& command)
+static void parseCommandArgs(std::string& input, proto::Command& command)
 {
     std::string commandArg;
 
@@ -36,7 +36,6 @@ static bool parseCommandArgs(std::string& input, proto::Command& command)
         command.add_args(commandArg);
         LOG_DEBUG(commandArg + ": Added as argument")
     }
-    return true;
 }
 
 static std::string toLower(std::string&& input)
@@ -62,6 +61,8 @@ static bool parseCommandType(std::string& input, proto::Command& command)
             return true;
         }
     }
+
+    LOG_WARNING("Invalid command: " + std::string(commandType) + " - Valid commands: start, stop, restart, status, reload, terminate")
     return false;
 }
 
@@ -71,8 +72,7 @@ static std::optional<proto::Command> parseInput(std::string& input)
 
     if (!parseCommandType(input, command))
         return std::nullopt;
-    if (!parseCommandArgs(input, command))
-        return std::nullopt;
+    parseCommandArgs(input, command);
     return command;
 }
 
