@@ -27,7 +27,7 @@ int main(int argc, char** argv)
     LOG_INFO("Starting " PROGRAM_NAME);
 
     try {
-        JobManager manager("./../tastconfig.yaml");
+        JobManager manager("./../taskconfig.yaml");
         Server     server(ipc::Socket::Type::UNIX, ipc::Address::UNIX("/tmp/taskmasterd.sock"), manager);
 
         bool running = true;

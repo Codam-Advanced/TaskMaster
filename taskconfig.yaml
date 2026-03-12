@@ -29,8 +29,8 @@ jobs:
     starttime: 1
     stopsignal: QUIT
     stoptime: 10
-    stdout: /tmpt/cat.out
-    stderr: /tmpt/cat.err
+    stdout: /tmp/cat.out
+    stderr: /tmp/cat.err
 
   cat_error:
     cmd: "/usr/bin/cat ./invalid_file"
@@ -43,8 +43,8 @@ jobs:
     starttime: 1
     stopsignal: QUIT
     stoptime: 10
-    stdout: /tmpt/cat_error.out
-    stderr: /tmpt/cat_error.err
+    stdout: /tmp/cat_error.out
+    stderr: /tmp/cat_error.err
 
   ls:
     cmd: "/usr/bin/ls"
