@@ -60,20 +60,8 @@ jobs:
     stdout: /tmp/ls.out
     stderr: /tmp/ls.err
 
-  sleep_running:
-    cmd: "/usr/bin/sleep 10"
-    numprocs: 1
-    workingdir: /home
-    umask: 077
-    autostart: false
-    autorestart: false
-    exitcodes: 0
-    starttime: 5
-    stopsignal: QUIT
-    stoptime: 10
-
   sleep_starting:
-    cmd: "/usr/bin/sleep 5"
+    cmd: "/usr/bin/sleep 100"
     numprocs: 1
     umask: 077
     autostart: false
