@@ -77,6 +77,8 @@ void parseAutoRestart(JobConfig* object, const YAML::Node& config)
     }
 
     // we dont care that this can throw since this will be called in the constructor anyways.
+    if (JobConfig::policies.find(config.as<std::string>()) == JobConfig::policies.end())
+        throw std::logic_error("Unsupported restart type!");
     object->restart_policy = JobConfig::policies.at(config.as<std::string>());
 }
 
@@ -129,6 +131,8 @@ void parseStopSignal(JobConfig* object, const YAML::Node& config)
         object->stop_signal = Signals::TERM;
         return;
     }
+    if (JobConfig::signals.find(config.as<std::string>()) == JobConfig::signals.end())
+        throw std::logic_error("Unsupported signal type!");
     object->stop_signal = JobConfig::signals.at(config.as<std::string>());
 }
 

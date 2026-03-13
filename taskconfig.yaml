@@ -1,24 +1,4 @@
 jobs:
-  nginx:
-    cmd: "/usr/sbin/nginx -c /home/kali/Documents/taskmaster/testing/nginx/nginx.conf"
-    numprocs: 1
-    umask: 022
-    workingdir: /home/kali/Documents/taskmaster/testing/nginx
-    autostart: true
-    autorestart: true
-    exitcodes:
-      - 0
-      - 2
-    startretries: 3
-    starttime: 1
-    stopsignal: QUIT
-    stoptime: 10
-    stdout: /tmp/nginx.stdout
-    stderr: /tmp/nginx.stderr
-    env:
-      STARTED_BY: taskmaster
-      ANSWER: 42
-
   cat:
     cmd: "/usr/bin/cat ./test"
     numprocs: 1
@@ -46,19 +26,40 @@ jobs:
     stdout: /tmp/cat_error.out
     stderr: /tmp/cat_error.err
 
+  bash_stoptime:
+    cmd: "/usr/bin/bash"
+    numprocs: 1
+    umask: 077
+    autostart: false
+    autorestart: false
+    starttime: 1
+    stopsignal: INT
+    stoptime: 3
+
+  bash_show_env:
+    cmd: "/usr/bin/bash -c env"
+    numprocs: 1
+    umask: 077
+    autostart: false
+    autorestart: false
+    starttime: 1
+    stopsignal: INT
+    stoptime: 3
+    env:
+      TASKMASTER: CHEESSE
+      MIEP: MOEP
+
   ls:
     cmd: "/usr/bin/ls"
     numprocs: 1
     umask: 077
-    workingdir: /tmp
+    workingdir: /home/kali/Documents/taskmaster/build
     autostart: false
     autorestart: false
     exitcodes: 0
     starttime: 1
     stopsignal: QUIT
     stoptime: 10
-    stdout: /tmp/ls.out
-    stderr: /tmp/ls.err
 
   sleep_starting:
     cmd: "/usr/bin/sleep 100"
@@ -68,7 +69,7 @@ jobs:
     autorestart: false
     exitcodes: 0
     starttime: 10
-    stopsignal: QUIT
+    stopsignal: TERM
     stoptime: 10
 
   sleep_restarting:
@@ -85,7 +86,7 @@ jobs:
   touch:
     cmd: "/usr/bin/touch miep"
     numprocs: 1
-    umask: 000
+    umask: 777
     workingdir: /tmp
     autostart: false
     autorestart: false

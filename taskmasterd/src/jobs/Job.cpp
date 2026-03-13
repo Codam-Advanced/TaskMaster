@@ -27,9 +27,9 @@ Job::Job(const JobConfig& config, JobManager& manager)
 void Job::parseArguments(const JobConfig& config)
 {
     // Prepare argv and env for execve
-    _args = split_shell(config.cmd);
-    _argv.reserve(_args.size() + 1);
-    for (auto& arg : _args) {
+    _arg_store = split_shell(config.cmd);
+    _argv.reserve(_arg_store.size() + 1);
+    for (auto& arg : _arg_store) {
         _argv.push_back(arg.c_str());
     }
     _argv.push_back(nullptr);
@@ -39,9 +39,10 @@ void Job::parseEnvironment(const JobConfig& config)
 {
 
     _env.reserve(config.env.size() + 1);
+    _env_store.reserve(config.env.size());
     for (auto& [key, value] : _config.env) {
-        std::string env_entry = key + "=" + value;
-        _env.push_back(env_entry.c_str());
+        _env_store.push_back(key + "=" + value);
+        _env.push_back(_env_store.back().c_str());
     }
     _env.push_back(nullptr);
 }
