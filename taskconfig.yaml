@@ -1,23 +1,23 @@
 jobs:
   nginx:
-    cmd: "/usr/sbin/nginx -c /home/kali/Documents/taskmaster/testing/nginx/nginx.conf"
-    numprocs: 1
-    umask: 022
-    workingdir: /home/kali/Documents/taskmaster/testing/nginx
-    autostart: true
-    autorestart: true
-    exitcodes:
-      - 0
-      - 2
-    startretries: 3
-    starttime: 1
-    stopsignal: QUIT
-    stoptime: 10
-    stdout: /tmp/nginx.stdout
-    stderr: /tmp/nginx.stderr
-    env:
-      STARTED_BY: taskmaster
-      ANSWER: 42
+    # cmd: "/usr/sbin/nginx -c /home/kali/Documents/taskmaster/testing/nginx/nginx.conf"
+    # numprocs: 1
+    # umask: 022
+    # workingdir: /home/kali/Documents/taskmaster/testing/nginx
+    # autostart: true
+    # autorestart: true
+    # exitcodes:
+    #   - 0
+    #   - 2
+    # startretries: 3
+    # starttime: 1
+    # stopsignal: QUIT
+    # stoptime: 10
+    # stdout: /tmp/nginx.stdout
+    # stderr: /tmp/nginx.stderr
+    # env:
+    #   STARTED_BY: taskmaster
+    #   ANSWER: 42
 
   cat:
     cmd: "/usr/bin/cat ./test"
@@ -60,20 +60,8 @@ jobs:
     stdout: /tmp/ls.out
     stderr: /tmp/ls.err
 
-  sleep_running:
-    cmd: "/usr/bin/sleep 10"
-    numprocs: 1
-    workingdir: /home
-    umask: 077
-    autostart: false
-    autorestart: false
-    exitcodes: 0
-    starttime: 5
-    stopsignal: QUIT
-    stoptime: 10
-
   sleep_starting:
-    cmd: "/usr/bin/sleep 5"
+    cmd: "/usr/bin/sleep 100"
     numprocs: 1
     umask: 077
     autostart: false

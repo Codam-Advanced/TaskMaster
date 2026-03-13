@@ -128,37 +128,36 @@ proto::CommandResponse JobManager::restart(const std::string& job_name)
 proto::CommandResponse JobManager::reload()
 {
     proto::CommandResponse res;
+
     try {
         _config = JobConfig::getJobConfigs(_config_path);
-
-        // loop through jobs that are changed or removed
-        for (auto& [name, job] : _jobs) {
-
-            // if job is not found or has changed we will have to stop the old job.
-            if (_config.find(name) == _config.end() || _config.at(name) != job.getConfig())
-                job.stop();
-        }
-
-        // loop through the new config to add new jobs to the job manager
-        for (auto& [name, config] : _config) {
-            if (_jobs.find(name) == _jobs.end())
-                createJob(name);
-        }
-
-        // update the _jobs map
-        update();
-
-        start();
-        res.set_status(proto::CommandStatus::OK);
-        res.set_message("Successfully started a reload of the config file");
-        return res;
-    } catch (const std::exception& e) {
-
-        _config.clear();
+    } catch (const std::exception &e) {
         res.set_status(proto::CommandStatus::ERROR);
-        res.set_message(std::string("Internal daemon error: ") + e.what());
+        res.set_message(std::string("Failed to reload new config: fallback to old config! Issue: ") + e.what());
         return res;
     }
+
+    // loop through jobs that are changed or removed
+    for (auto& [name, job] : _jobs) {
+
+        // if job is not found or has changed we will have to stop the old job.
+        if (_config.find(name) == _config.end() || _config.at(name) != job.getConfig())
+            job.stop();
+    }
+
+    // loop through the new config to add new jobs to the job manager
+    for (auto& [name, config] : _config) {
+        if (_jobs.find(name) == _jobs.end())
+            createJob(name);
+    }
+
+    // update the _jobs map
+    update();
+
+    start();
+    res.set_status(proto::CommandStatus::OK);
+    res.set_message("Successfully started a reload of the config file");
+    return res;
 }
 
 proto::CommandResponse JobManager::status()

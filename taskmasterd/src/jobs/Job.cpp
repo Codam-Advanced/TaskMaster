@@ -98,16 +98,22 @@ void Job::restartProcesses()
 
 void Job::stop()
 {
-    if (_state == State::STOPPED)
-        return _manager.onStop(_config.name);
 
-    if (_state == State::STOPPING || _state == State::EMPTY)
-        return;
-
-    _state = State::STOPPING;
-
-    for (auto& proc : _processes)
-        proc->stop(_config.stop_time, _config.stop_signal);
+    switch (_state) {
+        case State::STOPPING:
+            break;
+        case State::EMPTY:
+            _manager.onStop(_config.name);
+            break;
+        case State::STOPPED:
+            _manager.onStop(_config.name);
+            break;
+        default:
+            _state = State::STOPPING;
+            for (auto& proc : _processes)
+                proc->stop(_config.stop_time, _config.stop_signal);
+            break;
+    }   
 }
 
 bool Job::allProcessesInStates(std::vector<Process::State> state)
