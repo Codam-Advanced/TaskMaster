@@ -79,7 +79,7 @@ void Process::start(const std::string& path, char* const* argv, char* const* env
         umask(config.umask);
 
         if (execve(path.c_str(), argv, env) == -1) {
-            perror("execve failed");
+            LOG_ERROR("Error executing process " + config.name + " Issue: " + std::string(strerror(errno)));
             exit(EXIT_FAILURE);
         }
 
@@ -123,7 +123,7 @@ void Process::stop(i32 timeout, Signals stop_signal)
     // Set up a timer to send SIGKILL if the process does not stop in time
     _timer.reset(new Timer(timeout, [this]() {
         if (_state == State::STOPPING) {
-            LOG_DEBUG("Process " + _name + " did not stop in time, sending SIGKILL");
+            LOG_WARNING("Process " + _name + " did not stop in time, sending SIGKILL");
             this->kill();
         }
     }));

@@ -158,9 +158,10 @@ private:
 
     JobConfig                _config;
     JobManager&              _manager;
-    std::vector<std::string> _args;
+    std::vector<std::string> _arg_store;
     std::vector<const char*> _argv;
     std::vector<const char*> _env;
+    std::vector<std::string> _env_store;
 
     State                                 _state;
     pid_t                                 _pgid;
